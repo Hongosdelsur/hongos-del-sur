@@ -1,0 +1,17 @@
+PON TUS FOTOS AQUÍ
+==================
+
+Guarda tus fotos en esta carpeta con EXACTAMENTE estos nombres
+(en minúsculas y en formato .jpg):
+
+  nosotros.jpg   -> foto tuya o del cultivo (sección "Quiénes somos")
+  ostra.jpg      -> foto del hongo Ostra
+  melena.jpg     -> foto de la Melena de León
+  chestnut.jpg   -> foto del hongo Chestnut
+  shiitake.jpg   -> foto del Shiitake
+
+Consejos:
+- Recorta las fotos del catálogo en cuadrado (por ejemplo 800x800 px).
+- La foto de "nosotros" queda mejor horizontal (por ejemplo 1200x900 px).
+- Si una foto no existe, la web muestra un recuadro de color en su lugar
+  (no se rompe nada).
