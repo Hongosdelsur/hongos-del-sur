@@ -15,15 +15,24 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍄</text></svg>" />
+  <link rel="stylesheet" href="styles.css?v=2" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M6 40 Q6 8 32 8 Q58 8 58 40 Z' fill='%237a5c3e'/><path d='M24 40 L24 56 Q24 62 32 62 Q40 62 40 56 L40 40 Z' fill='%23b5722e'/><circle cx='20' cy='28' r='3' fill='%23fffdf9'/><circle cx='32' cy='23' r='3.4' fill='%23fffdf9'/><circle cx='44' cy='28' r='3' fill='%23fffdf9'/></svg>" />
 </head>
 <body>
 
   <!-- ===== NAVEGACIÓN ===== -->
   <header class="nav">
     <div class="container nav__inner">
-      <a href="#inicio" class="nav__logo">🍄 Hongos del Sur</a>
+      <a href="#inicio" class="nav__logo">
+        <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true">
+          <path class="lm-cap" d="M6 40 Q6 8 32 8 Q58 8 58 40 Z" />
+          <path class="lm-stem" d="M24 40 L24 56 Q24 62 32 62 Q40 62 40 56 L40 40 Z" />
+          <circle class="lm-dot" cx="20" cy="28" r="3" />
+          <circle class="lm-dot" cx="32" cy="23" r="3.4" />
+          <circle class="lm-dot" cx="44" cy="28" r="3" />
+        </svg>
+        <span>Hongos del Sur</span>
+      </a>
       <nav class="nav__links">
         <a href="#nosotros">Quiénes somos</a>
         <a href="#hacemos">Qué hacemos</a>
@@ -122,6 +131,11 @@
             <h3>Ostra</h3>
             <p class="card__latin">Pleurotus ostreatus</p>
             <p>Suave y versátil, de textura carnosa. Ideal para salteados, guisos y como reemplazo de carne.</p>
+            <p class="card__benefits-title">Beneficios</p>
+            <ul class="card__benefits">
+              <li>Rico en betaglucanos y antioxidantes.</li>
+              <li>Estudios clínicos asocian su consumo con menores niveles de colesterol.<a href="#fuentes" class="ref">1</a></li>
+            </ul>
           </div>
         </article>
 
@@ -135,6 +149,11 @@
             <h3>Melena de León</h3>
             <p class="card__latin">Hericium erinaceus</p>
             <p>Sabor delicado que recuerda al marisco. Muy apreciado por sus propiedades y su textura única.</p>
+            <p class="card__benefits-title">Beneficios</p>
+            <ul class="card__benefits">
+              <li>Contiene compuestos (erinacinas) que estimulan el factor de crecimiento nervioso.</li>
+              <li>Se investiga su apoyo a la memoria, concentración y ánimo.<a href="#fuentes" class="ref">2</a></li>
+            </ul>
           </div>
         </article>
 
@@ -148,6 +167,11 @@
             <h3>Chestnut</h3>
             <p class="card__latin">Pholiota adiposa</p>
             <p>Crujiente y de sabor a frutos secos. Aguanta muy bien la cocción y aporta un toque gourmet.</p>
+            <p class="card__benefits-title">Beneficios</p>
+            <ul class="card__benefits">
+              <li>Fuente de polisacáridos, proteínas y esteroles.</li>
+              <li>Estudios reportan actividad antioxidante y captadora de radicales libres.<a href="#fuentes" class="ref">3</a></li>
+            </ul>
           </div>
         </article>
 
@@ -161,8 +185,25 @@
             <h3>Shiitake</h3>
             <p class="card__latin">Lentinula edodes</p>
             <p>Intenso y umami. Un clásico de la cocina asiática, perfecto para caldos, salteados y risottos.</p>
+            <p class="card__benefits-title">Beneficios</p>
+            <ul class="card__benefits">
+              <li>Aporta lentinano (betaglucano) que modula el sistema inmune.</li>
+              <li>Contiene eritadenina, asociada a la reducción del colesterol.<a href="#fuentes" class="ref">4</a></li>
+            </ul>
           </div>
         </article>
+      </div>
+
+      <!-- Fuentes cientificas -->
+      <div id="fuentes" class="fuentes">
+        <h3>Fuentes científicas</h3>
+        <ol>
+          <li>González A., et al. <em>Effect of the Intake of Oyster Mushrooms (Pleurotus ostreatus) on Cardiometabolic Parameters — A Systematic Review of Clinical Trials.</em> Nutrients, 2020. <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7230384/" target="_blank" rel="noopener">Ver estudio ↗</a></li>
+          <li>Elhusseiny S., et al. <em>Benefits, side effects, and uses of Hericium erinaceus as a supplement: a systematic review.</em> Frontiers in Nutrition, 2025. <a href="https://pubmed.ncbi.nlm.nih.gov/40959699/" target="_blank" rel="noopener">Ver estudio ↗</a></li>
+          <li>Li H., et al. <em>The structural characterization of a polysaccharide exhibiting antitumor effect from Pholiota adiposa mycelia.</em> Scientific Reports (Nature), 2018. <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6370848/" target="_blank" rel="noopener">Ver estudio ↗</a></li>
+          <li>Finimundy T., et al. <em>Shiitake (Lentinus edodes): A Species with Antioxidant, Immunomodulatory, and Hepatoprotective Activities.</em> Int. Journal of Medicinal Mushrooms, 2017. <a href="https://pubmed.ncbi.nlm.nih.gov/29345560/" target="_blank" rel="noopener">Ver estudio ↗</a></li>
+        </ol>
+        <p class="fuentes__aviso">La información sobre propiedades tiene fines educativos y se basa en estudios científicos. No constituye consejo médico ni promete resultados. Ante cualquier duda de salud, consulta a un profesional.</p>
       </div>
     </div>
   </section>
@@ -190,10 +231,27 @@
   <!-- ===== FOOTER ===== -->
   <footer class="footer">
     <div class="container footer__inner">
-      <span>🍄 Hongos del Sur</span>
+      <span class="footer__brand">
+        <svg class="logo-mark logo-mark--light" viewBox="0 0 64 64" aria-hidden="true">
+          <path class="lm-cap" d="M6 40 Q6 8 32 8 Q58 8 58 40 Z" />
+          <path class="lm-stem" d="M24 40 L24 56 Q24 62 32 62 Q40 62 40 56 L40 40 Z" />
+          <circle class="lm-dot" cx="20" cy="28" r="3" />
+          <circle class="lm-dot" cx="32" cy="23" r="3.4" />
+          <circle class="lm-dot" cx="44" cy="28" r="3" />
+        </svg>
+        Hongos del Sur
+      </span>
       <span>© 2026 · Sur de Chile · hongosdelsur.cl</span>
     </div>
   </footer>
+
+  <!-- ===== BOTÓN FLOTANTE WHATSAPP ===== -->
+  <a class="wa-float" href="https://wa.me/56934584090?text=Hola%20Hongos%20del%20Sur,%20quiero%20hacer%20una%20consulta"
+     target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M16 .5C7.4.5.5 7.4.5 16c0 2.8.7 5.4 2 7.8L.5 31.5l7.9-2c2.3 1.2 4.9 1.9 7.6 1.9 8.6 0 15.5-6.9 15.5-15.5S24.6.5 16 .5zm0 28c-2.4 0-4.7-.6-6.7-1.8l-.5-.3-4.7 1.2 1.3-4.6-.3-.5C3.9 20.5 3.2 18.3 3.2 16 3.2 8.9 8.9 3.2 16 3.2S28.8 8.9 28.8 16 23.1 28.5 16 28.5zm7.1-9.6c-.4-.2-2.3-1.1-2.6-1.3-.3-.1-.6-.2-.9.2-.3.4-1 1.3-1.2 1.5-.2.2-.4.3-.8.1-.4-.2-1.6-.6-3.1-1.9-1.1-1-1.9-2.2-2.1-2.6-.2-.4 0-.6.2-.8.2-.2.4-.4.5-.6.2-.2.2-.4.4-.6.1-.2.1-.5 0-.7-.1-.2-.9-2.2-1.3-3-.3-.8-.7-.7-.9-.7h-.8c-.3 0-.7.1-1 .5-.3.4-1.3 1.3-1.3 3.1s1.3 3.6 1.5 3.9c.2.2 2.6 4 6.3 5.6.9.4 1.6.6 2.1.8.9.3 1.7.2 2.3.1.7-.1 2.3-.9 2.6-1.8.3-.9.3-1.6.2-1.8-.1-.1-.3-.2-.7-.4z"/>
+    </svg>
+  </a>
 
 </body>
 </html>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96" role="img" aria-label="Hongos del Sur">
+  <!-- Marca -->
+  <g transform="translate(8,20)">
+    <path d="M4 32 Q4 6 28 6 Q52 6 52 32 Z" fill="#7a5c3e"/>
+    <path d="M21 32 L21 48 Q21 55 28 55 Q35 55 35 48 L35 32 Z" fill="#b5722e"/>
+    <circle cx="17" cy="23" r="2.2" fill="#fffdf9"/>
+    <circle cx="28" cy="19" r="2.6" fill="#fffdf9"/>
+    <circle cx="39" cy="23" r="2.2" fill="#fffdf9"/>
+  </g>
+  <!-- Texto -->
+  <g fill="#2b2620" font-family="Fraunces, Georgia, serif">
+    <text x="80" y="46" font-size="30" font-weight="700">Hongos del Sur</text>
+    <text x="82" y="68" font-size="13" letter-spacing="3" fill="#b5722e" font-family="Inter, sans-serif" font-weight="600">CULTIVO GOURMET · SUR DE CHILE</text>
+  </g>
+</svg>
