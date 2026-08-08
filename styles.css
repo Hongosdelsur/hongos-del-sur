@@ -70,7 +70,8 @@ a { color: inherit; text-decoration: none; }
   border-bottom: 1px solid rgba(43,38,32,0.06);
 }
 .nav__inner { display: flex; align-items: center; justify-content: space-between; height: 66px; }
-.nav__logo { display: flex; align-items: center; gap: 9px; font-family: "Fraunces", serif; font-weight: 700; font-size: 1.25rem; }
+.nav__logo { display: flex; align-items: center; gap: 10px; font-family: "Fraunces", serif; font-weight: 700; font-size: 1.25rem; }
+.nav__logo-img { width: 42px; height: 42px; flex-shrink: 0; }
 .logo-mark { width: 30px; height: 30px; flex-shrink: 0; }
 .logo-mark .lm-cap { fill: var(--brand); }
 .logo-mark .lm-stem { fill: var(--accent); }
@@ -95,6 +96,7 @@ a { color: inherit; text-decoration: none; }
   padding: 90px 0 100px;
 }
 .hero__inner { max-width: 780px; }
+.hero__logo { width: 132px; height: 132px; margin-bottom: 20px; }
 .hero__eyebrow {
   text-transform: uppercase; letter-spacing: 0.14em;
   font-size: 0.8rem; font-weight: 600; color: var(--accent); margin-bottom: 18px;
@@ -228,8 +230,13 @@ a { color: inherit; text-decoration: none; }
 /* ===== Footer ===== */
 .footer { background: var(--brand-dark); color: #e8ddcb; padding: 26px 0; }
 .footer__inner { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 0.9rem; }
-.footer__brand { display: flex; align-items: center; gap: 8px; font-family: "Fraunces", serif; font-weight: 700; font-size: 1.05rem; }
-.footer__brand .logo-mark { width: 26px; height: 26px; }
+.footer__brand { display: flex; align-items: center; gap: 10px; font-family: "Fraunces", serif; font-weight: 700; font-size: 1.05rem; }
+.footer__logo-chip {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--cream); flex-shrink: 0;
+}
+.footer__logo-chip img { width: 36px; height: 36px; }
 
 /* ===== Responsive ===== */
 @media (max-width: 900px) {
