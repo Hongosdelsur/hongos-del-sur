@@ -3,235 +3,444 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hongos del Sur — Cultivo de hongos gourmet en el sur de Chile</title>
-  <meta name="description" content="Hongos del Sur: cultivamos hongos gourmet frescos en el sur de Chile. Ostra, Melena de León, Chestnut y Shiitake. Conoce quiénes somos y nuestro catálogo." />
 
-  <!-- Open Graph (para que se vea bien al compartir en WhatsApp/redes) -->
-  <meta property="og:title" content="Hongos del Sur" />
-  <meta property="og:description" content="Cultivo de hongos gourmet frescos en el sur de Chile." />
+  <title>Hongos del Sur — Cultivo de hongos gourmet y funcionales en Osorno, Chile</title>
+  <meta name="description" content="Hongos del Sur es una productora de Osorno, Región de Los Lagos, dedicada al cultivo de hongos gourmet y de interés funcional: Melena de León, Shiitake, Pleurotus, Reishi y más. Hongos frescos, deshidratados y extractos, del sur de Chile." />
+  <meta name="theme-color" content="#243b30" />
+  <link rel="canonical" href="https://hongosdelsur.cl/" />
+
+  <!-- Open Graph / redes -->
+  <meta property="og:title" content="Hongos del Sur — Cultivo de hongos en el sur de Chile" />
+  <meta property="og:description" content="Cultivamos hongos gourmet y funcionales en Osorno. Frescos, deshidratados y extractos." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://hongosdelsur.cl" />
+  <meta property="og:url" content="https://hongosdelsur.cl/" />
+  <meta property="og:image" content="https://hongosdelsur.cl/img/logo.png" />
+  <meta property="og:locale" content="es_CL" />
+  <meta name="twitter:card" content="summary" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=3" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=4" />
   <link rel="icon" type="image/png" href="img/logo.png" />
   <link rel="apple-touch-icon" href="img/logo.png" />
+
+  <!-- Datos estructurados: negocio local -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Hongos del Sur",
+    "description": "Cultivo y desarrollo de productos derivados de hongos gourmet y de interés funcional en Osorno, sur de Chile.",
+    "image": "https://hongosdelsur.cl/img/logo.png",
+    "url": "https://hongosdelsur.cl",
+    "telephone": "+56934584090",
+    "email": "hongosparaelsur@gmail.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Osorno",
+      "addressRegion": "Región de Los Lagos",
+      "addressCountry": "CL"
+    },
+    "areaServed": "Chile",
+    "sameAs": ["https://instagram.com/hongosdelsurosorno"]
+  }
+  </script>
 </head>
 <body>
 
   <!-- ===== NAVEGACIÓN ===== -->
-  <header class="nav">
+  <header class="nav" id="top">
     <div class="container nav__inner">
       <a href="#inicio" class="nav__logo">
-        <img src="img/logo.png" alt="Hongos del Sur" class="nav__logo-img" />
+        <img src="img/logo.png" alt="Logo de Hongos del Sur" class="nav__logo-img" width="42" height="42" />
         <span>Hongos del Sur</span>
       </a>
-      <nav class="nav__links">
-        <a href="#nosotros">Quiénes somos</a>
-        <a href="#hacemos">Qué hacemos</a>
-        <a href="#catalogo">Catálogo</a>
+      <button class="nav__toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav__links" id="menu">
+        <a href="#nosotros">Nosotros</a>
+        <a href="#hongos">Hongos</a>
+        <a href="#proceso">Proceso</a>
+        <a href="#productos">Productos</a>
+        <a href="#id">I+D</a>
+        <a href="#galeria">Galería</a>
         <a href="#contacto" class="nav__cta">Contacto</a>
       </nav>
     </div>
   </header>
 
-  <!-- ===== HERO ===== -->
-  <section id="inicio" class="hero">
-    <div class="container hero__inner">
-      <img src="img/logo.png" alt="Logo Hongos del Sur" class="hero__logo" />
-      <p class="hero__eyebrow">Cultivo artesanal · Sur de Chile</p>
-      <h1 class="hero__title">Hongos gourmet frescos,<br />cultivados con dedicación</h1>
-      <p class="hero__subtitle">
-        Somos una productora familiar del sur de Chile. Cultivamos hongos
-        gourmet de la más alta calidad, cosechados frescos para tu mesa,
-        restaurante o feria.
-      </p>
-      <div class="hero__actions">
-        <a href="#catalogo" class="btn btn--primary">Ver catálogo</a>
-        <a href="#contacto" class="btn btn--ghost">Contáctanos</a>
-      </div>
-    </div>
-  </section>
+  <main>
 
-  <!-- ===== QUIÉNES SOMOS ===== -->
-  <section id="nosotros" class="section">
-    <div class="container section__grid">
-      <div class="section__media">
-        <!-- ⚠️ REEMPLAZA: pon una foto tuya/del cultivo en img/nosotros.jpg -->
-        <img src="img/nosotros.jpg" alt="Nuestro cultivo de hongos" onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
-        <span class="placeholder__label">Tu foto aquí<br /><small>img/nosotros.jpg</small></span>
-      </div>
-      <div class="section__text">
-        <p class="eyebrow">Quiénes somos</p>
-        <h2>Una familia apasionada por el cultivo</h2>
-        <p>
-          Hongos del Sur nace del amor por la tierra y por los alimentos sanos.
-          Somos una pequeña empresa del sur de Chile dedicada al cultivo de
-          hongos gourmet de forma cuidadosa y sostenible.
+    <!-- ===== HERO ===== -->
+    <section id="inicio" class="hero">
+      <img class="hero__bg" src="img/hero.jpg" alt="Hongos cultivados por Hongos del Sur en el sur de Chile"
+           onerror="this.onerror=null;this.src='img/ostra.jpg'" fetchpriority="high" />
+      <div class="hero__overlay"></div>
+      <div class="container hero__inner">
+        <p class="hero__eyebrow"><span class="dot"></span>Osorno · Región de Los Lagos · Chile</p>
+        <h1 class="hero__title">Cultivamos hongos<br />en el sur de Chile.</h1>
+        <p class="hero__subtitle">
+          Producción propia de hongos gourmet y de interés funcional. Frescos,
+          deshidratados y extractos, con conocimiento y proceso real detrás de cada lote.
         </p>
-        <p>
-          Controlamos cada etapa del proceso —desde el sustrato hasta la
-          cosecha— para entregarte hongos frescos, de sabor y textura
-          excepcionales.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== QUÉ HACEMOS ===== -->
-  <section id="hacemos" class="section section--tint">
-    <div class="container">
-      <div class="section__head">
-        <p class="eyebrow">Qué hacemos</p>
-        <h2>Del cultivo a tu mesa</h2>
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature__icon">🌱</div>
-          <h3>Cultivo propio</h3>
-          <p>Producimos nuestros hongos bajo condiciones controladas para asegurar calidad y frescura en cada lote.</p>
-        </div>
-        <div class="feature">
-          <div class="feature__icon">🧺</div>
-          <h3>Cosecha fresca</h3>
-          <p>Cosechamos a pedido para que recibas los hongos en su punto óptimo de sabor y textura.</p>
-        </div>
-        <div class="feature">
-          <div class="feature__icon">🍽️</div>
-          <h3>Para todos</h3>
-          <p>Vendemos a hogares, restaurantes y ferias. También ofrecemos hongos deshidratados y por encargo.</p>
+        <div class="hero__actions">
+          <a href="#hongos" class="btn btn--primary">Conoce nuestros hongos</a>
+          <a href="#contacto" class="btn btn--glass">Contáctanos</a>
         </div>
       </div>
-    </div>
-  </section>
+      <a href="#nosotros" class="hero__scroll" aria-label="Bajar">↓</a>
+    </section>
 
-  <!-- ===== CATÁLOGO ===== -->
-  <section id="catalogo" class="section">
-    <div class="container">
-      <div class="section__head">
-        <p class="eyebrow">Catálogo</p>
-        <h2>Nuestros hongos</h2>
-        <p class="section__lead">Estos son los hongos gourmet que cultivamos. Escríbenos para conocer disponibilidad y precios.</p>
+    <!-- ===== 01 · NOSOTROS ===== -->
+    <section id="nosotros" class="section">
+      <div class="container grid-2">
+        <div class="reveal">
+          <p class="eyebrow"><span class="eyebrow__num">01</span> Quiénes somos</p>
+          <h2>Pequeños, pero sabemos lo que hacemos.</h2>
+          <p class="lead">
+            Hongos del Sur es una empresa de Osorno, en la Región de Los Lagos,
+            dedicada al cultivo y desarrollo de productos derivados de hongos.
+          </p>
+          <p>
+            Estamos involucrados en cada etapa: sustratos, inoculación, control de
+            contaminación, fructificación, cosecha, deshidratación y desarrollo de
+            productos. No somos una gran corporación —somos una empresa local que está
+            construyendo conocimiento y capacidad productiva alrededor de los hongos.
+          </p>
+          <ul class="checklist">
+            <li>Producción propia a pequeña escala</li>
+            <li>Control técnico de cada lote</li>
+            <li>Del sur de Chile, para todo Chile</li>
+          </ul>
+        </div>
+        <div class="media-frame reveal">
+          <img src="img/nosotros.jpg" alt="Proceso de producción de Hongos del Sur en Osorno" loading="lazy"
+               onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
+          <span class="placeholder__label">Foto del proceso / producción<br /><small>img/nosotros.jpg</small></span>
+        </div>
       </div>
+    </section>
 
-      <div class="catalog">
-        <!-- Ostra -->
-        <article class="card">
-          <div class="card__media">
-            <img src="img/ostra.jpg" alt="Hongo Ostra" onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
-            <span class="placeholder__label">img/ostra.jpg</span>
-          </div>
-          <div class="card__body">
-            <h3>Ostra</h3>
-            <p class="card__latin">Pleurotus ostreatus</p>
-            <p>Suave y versátil, de textura carnosa. Ideal para salteados, guisos y como reemplazo de carne.</p>
-            <p class="card__benefits-title">Beneficios</p>
-            <ul class="card__benefits">
-              <li>Rico en betaglucanos y antioxidantes.</li>
-              <li>Estudios clínicos asocian su consumo con menores niveles de colesterol.<a href="#fuentes" class="ref">1</a></li>
-            </ul>
-          </div>
-        </article>
+    <!-- ===== 02 · NUESTROS HONGOS ===== -->
+    <section id="hongos" class="section section--sand">
+      <div class="container">
+        <div class="section__head reveal">
+          <p class="eyebrow"><span class="eyebrow__num">02</span> Nuestros hongos</p>
+          <h2>Especies que cultivamos</h2>
+          <p class="lead">Gourmet y de interés funcional. Trabajamos con cada especie según su técnica y su punto óptimo de cosecha.</p>
+        </div>
 
-        <!-- Melena de León -->
-        <article class="card">
-          <div class="card__media">
-            <img src="img/melena.jpg" alt="Hongo Melena de León" onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
-            <span class="placeholder__label">img/melena.jpg</span>
-          </div>
-          <div class="card__body">
-            <h3>Melena de León</h3>
-            <p class="card__latin">Hericium erinaceus</p>
-            <p>Sabor delicado que recuerda al marisco. Muy apreciado por sus propiedades y su textura única.</p>
-            <p class="card__benefits-title">Beneficios</p>
-            <ul class="card__benefits">
-              <li>Contiene compuestos (erinacinas) que estimulan el factor de crecimiento nervioso.</li>
-              <li>Se investiga su apoyo a la memoria, concentración y ánimo.<a href="#fuentes" class="ref">2</a></li>
-            </ul>
-          </div>
-        </article>
+        <div class="species">
+          <!-- Pleurotus -->
+          <article class="scard reveal">
+            <div class="scard__media">
+              <img src="img/ostra.jpg" alt="Hongo ostra (Pleurotus ostreatus) cultivado por Hongos del Sur" loading="lazy"
+                   onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
+              <span class="placeholder__label">img/ostra.jpg</span>
+            </div>
+            <div class="scard__body">
+              <h3>Ostra / Pleurotus</h3>
+              <p class="latin">Pleurotus ostreatus</p>
+              <p class="scard__desc">Carnoso y versátil, la base de la cocina con hongos.</p>
+              <div class="tags"><span>Fresco</span><span>Deshidratado</span><span>Gourmet</span></div>
+            </div>
+          </article>
 
-        <!-- Chestnut -->
-        <article class="card">
-          <div class="card__media">
-            <img src="img/chestnut.jpg" alt="Hongo Chestnut" onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
-            <span class="placeholder__label">img/chestnut.jpg</span>
-          </div>
-          <div class="card__body">
-            <h3>Chestnut</h3>
-            <p class="card__latin">Pholiota adiposa</p>
-            <p>Crujiente y de sabor a frutos secos. Aguanta muy bien la cocción y aporta un toque gourmet.</p>
-            <p class="card__benefits-title">Beneficios</p>
-            <ul class="card__benefits">
-              <li>Fuente de polisacáridos, proteínas y esteroles.</li>
-              <li>Estudios reportan actividad antioxidante y captadora de radicales libres.<a href="#fuentes" class="ref">3</a></li>
-            </ul>
-          </div>
-        </article>
+          <!-- Melena de León -->
+          <article class="scard reveal">
+            <div class="scard__media">
+              <img src="img/melena.jpg" alt="Melena de León (Hericium erinaceus) cultivado por Hongos del Sur" loading="lazy"
+                   onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
+              <span class="placeholder__label">img/melena.jpg</span>
+            </div>
+            <div class="scard__body">
+              <h3>Melena de León</h3>
+              <p class="latin">Hericium erinaceus</p>
+              <p class="scard__desc">Delicado, recuerda al marisco. Textura única.</p>
+              <div class="tags"><span>Fresco</span><span>Deshidratado</span><span class="tag--fn">Funcional</span></div>
+            </div>
+          </article>
 
-        <!-- Shiitake -->
-        <article class="card">
-          <div class="card__media">
-            <img src="img/shiitake.jpg" alt="Hongo Shiitake" onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
-            <span class="placeholder__label">img/shiitake.jpg</span>
-          </div>
-          <div class="card__body">
-            <h3>Shiitake</h3>
-            <p class="card__latin">Lentinula edodes</p>
-            <p>Intenso y umami. Un clásico de la cocina asiática, perfecto para caldos, salteados y risottos.</p>
-            <p class="card__benefits-title">Beneficios</p>
-            <ul class="card__benefits">
-              <li>Aporta lentinano (betaglucano) que modula el sistema inmune.</li>
-              <li>Contiene eritadenina, asociada a la reducción del colesterol.<a href="#fuentes" class="ref">4</a></li>
-            </ul>
-          </div>
-        </article>
+          <!-- Shiitake -->
+          <article class="scard reveal">
+            <div class="scard__media">
+              <img src="img/shiitake.jpg" alt="Shiitake (Lentinula edodes) cultivado por Hongos del Sur" loading="lazy"
+                   onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
+              <span class="placeholder__label">img/shiitake.jpg</span>
+            </div>
+            <div class="scard__body">
+              <h3>Shiitake</h3>
+              <p class="latin">Lentinula edodes</p>
+              <p class="scard__desc">Intenso y umami, un clásico con cuerpo.</p>
+              <div class="tags"><span>Fresco</span><span>Deshidratado</span><span class="tag--fn">Funcional</span></div>
+            </div>
+          </article>
+
+          <!-- Chestnut -->
+          <article class="scard reveal">
+            <div class="scard__media">
+              <img src="img/chestnut.jpg" alt="Hongo Chestnut (Pholiota adiposa) cultivado por Hongos del Sur" loading="lazy"
+                   onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
+              <span class="placeholder__label">img/chestnut.jpg</span>
+            </div>
+            <div class="scard__body">
+              <h3>Chestnut</h3>
+              <p class="latin">Pholiota adiposa</p>
+              <p class="scard__desc">Crujiente, con notas a frutos secos.</p>
+              <div class="tags"><span>Fresco</span><span>Gourmet</span></div>
+            </div>
+          </article>
+
+          <!-- Enoki -->
+          <article class="scard reveal">
+            <div class="scard__media">
+              <img src="img/enoki.jpg" alt="Enoki (Flammulina velutipes) cultivado por Hongos del Sur" loading="lazy"
+                   onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
+              <span class="placeholder__label">Tu foto<br /><small>img/enoki.jpg</small></span>
+            </div>
+            <div class="scard__body">
+              <h3>Enoki</h3>
+              <p class="latin">Flammulina velutipes</p>
+              <p class="scard__desc">Finos y crocantes, delicados al paladar.</p>
+              <div class="tags"><span>Fresco</span><span>Gourmet</span></div>
+            </div>
+          </article>
+
+          <!-- Reishi -->
+          <article class="scard reveal">
+            <div class="scard__media">
+              <img src="img/reishi.jpg" alt="Reishi (Ganoderma) cultivado por Hongos del Sur" loading="lazy"
+                   onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
+              <span class="placeholder__label">Tu foto<br /><small>img/reishi.jpg</small></span>
+            </div>
+            <div class="scard__body">
+              <h3>Reishi</h3>
+              <p class="latin">Ganoderma sp.</p>
+              <p class="scard__desc">Leñoso y amargo; base de extractos.</p>
+              <div class="tags"><span>Deshidratado</span><span>Extracto</span><span class="tag--fn">Funcional</span></div>
+            </div>
+          </article>
+
+          <!-- Cola de Pavo -->
+          <article class="scard reveal">
+            <div class="scard__media">
+              <img src="img/colapavo.jpg" alt="Cola de Pavo (Trametes versicolor) cultivado por Hongos del Sur" loading="lazy"
+                   onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
+              <span class="placeholder__label">Tu foto<br /><small>img/colapavo.jpg</small></span>
+            </div>
+            <div class="scard__body">
+              <h3>Cola de Pavo</h3>
+              <p class="latin">Trametes versicolor</p>
+              <p class="scard__desc">Anillos de color; usado en extractos.</p>
+              <div class="tags"><span>Deshidratado</span><span>Extracto</span><span class="tag--fn">Funcional</span></div>
+            </div>
+          </article>
+        </div>
+
+        <!-- Nota responsable sobre propiedades -->
+        <div class="fnote reveal">
+          <p>
+            <strong>Sobre las propiedades funcionales.</strong> Algunas especies son de
+            interés por sus compuestos (betaglucanos, polisacáridos, entre otros) y son
+            objeto de estudio científico. Compartimos esta información con fines
+            educativos: <em>no hacemos afirmaciones médicas ni prometemos tratamientos o curas.</em>
+          </p>
+          <details>
+            <summary>Ver referencias científicas</summary>
+            <ol>
+              <li>González A. et al. <em>Oyster Mushrooms on Cardiometabolic Parameters — Systematic Review.</em> Nutrients, 2020. <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7230384/" target="_blank" rel="noopener">Ver ↗</a></li>
+              <li>Elhusseiny S. et al. <em>Hericium erinaceus: a systematic review.</em> Frontiers in Nutrition, 2025. <a href="https://pubmed.ncbi.nlm.nih.gov/40959699/" target="_blank" rel="noopener">Ver ↗</a></li>
+              <li>Finimundy T. et al. <em>Shiitake: Antioxidant &amp; Immunomodulatory activities.</em> Int. J. Med. Mushrooms, 2017. <a href="https://pubmed.ncbi.nlm.nih.gov/29345560/" target="_blank" rel="noopener">Ver ↗</a></li>
+            </ol>
+            <p class="fnote__aviso">Información con respaldo científico y fines educativos. No constituye consejo médico. Ante dudas de salud, consulta a un profesional.</p>
+          </details>
+        </div>
       </div>
+    </section>
 
-      <!-- Fuentes cientificas -->
-      <div id="fuentes" class="fuentes">
-        <h3>Fuentes científicas</h3>
-        <ol>
-          <li>González A., et al. <em>Effect of the Intake of Oyster Mushrooms (Pleurotus ostreatus) on Cardiometabolic Parameters — A Systematic Review of Clinical Trials.</em> Nutrients, 2020. <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7230384/" target="_blank" rel="noopener">Ver estudio ↗</a></li>
-          <li>Elhusseiny S., et al. <em>Benefits, side effects, and uses of Hericium erinaceus as a supplement: a systematic review.</em> Frontiers in Nutrition, 2025. <a href="https://pubmed.ncbi.nlm.nih.gov/40959699/" target="_blank" rel="noopener">Ver estudio ↗</a></li>
-          <li>Li H., et al. <em>The structural characterization of a polysaccharide exhibiting antitumor effect from Pholiota adiposa mycelia.</em> Scientific Reports (Nature), 2018. <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6370848/" target="_blank" rel="noopener">Ver estudio ↗</a></li>
-          <li>Finimundy T., et al. <em>Shiitake (Lentinus edodes): A Species with Antioxidant, Immunomodulatory, and Hepatoprotective Activities.</em> Int. Journal of Medicinal Mushrooms, 2017. <a href="https://pubmed.ncbi.nlm.nih.gov/29345560/" target="_blank" rel="noopener">Ver estudio ↗</a></li>
+    <!-- ===== 03 · DEL CULTIVO AL PRODUCTO ===== -->
+    <section id="proceso" class="section section--dark">
+      <div class="container">
+        <div class="section__head reveal">
+          <p class="eyebrow eyebrow--light"><span class="eyebrow__num">03</span> Del cultivo al producto</p>
+          <h2>Los hongos no aparecen en una caja.<br />Hay un proceso detrás.</h2>
+          <p class="lead lead--light">Controlamos cada etapa, desde el sustrato hasta el producto final.</p>
+        </div>
+
+        <ol class="process">
+          <li class="pstep reveal">
+            <span class="pstep__num">01</span>
+            <span class="pstep__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l-1 4H7z"/><path d="M7 7c-1 3-2 6-2 9a5 5 0 0 0 5 5h4a5 5 0 0 0 5-5c0-3-1-6-2-9"/><path d="M9 14h6M9 18h6"/></svg></span>
+            <h3>Sustrato</h3>
+            <p>Formulamos y preparamos el sustrato según cada especie.</p>
+          </li>
+          <li class="pstep reveal">
+            <span class="pstep__num">02</span>
+            <span class="pstep__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.5 6 10.5a6 6 0 0 1-12 0C6 9.5 12 3 12 3z"/><path d="M9.5 13.5a2.5 2.5 0 0 0 2.5 2.5"/></svg></span>
+            <h3>Inoculación</h3>
+            <p>Sembramos el micelio en condiciones limpias y controladas.</p>
+          </li>
+          <li class="pstep reveal">
+            <span class="pstep__num">03</span>
+            <span class="pstep__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="8" width="12" height="12" rx="2"/><path d="M8 8V5h8v3"/><circle cx="10" cy="13" r="1"/><circle cx="14" cy="16" r="1"/><circle cx="13" cy="12" r="1"/></svg></span>
+            <h3>Colonización</h3>
+            <p>El micelio coloniza el sustrato. Vigilamos la contaminación.</p>
+          </li>
+          <li class="pstep reveal">
+            <span class="pstep__num">04</span>
+            <span class="pstep__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 16 0z"/><path d="M10 12v5a2 2 0 0 0 4 0v-5"/></svg></span>
+            <h3>Fructificación</h3>
+            <p>Con humedad y aire adecuados, nacen y crecen los hongos.</p>
+          </li>
+          <li class="pstep reveal">
+            <span class="pstep__num">05</span>
+            <span class="pstep__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16l-1.5 11h-13z"/><path d="M8 9l4-5 4 5"/></svg></span>
+            <h3>Cosecha</h3>
+            <p>Cosechamos a mano, en el punto óptimo de cada especie.</p>
+          </li>
+          <li class="pstep reveal">
+            <span class="pstep__num">06</span>
+            <span class="pstep__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></svg></span>
+            <h3>Procesamiento</h3>
+            <p>Deshidratación y desarrollo de extractos y derivados.</p>
+          </li>
+          <li class="pstep reveal">
+            <span class="pstep__num">07</span>
+            <span class="pstep__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="9" width="12" height="12" rx="2"/><path d="M9 9V6h6v3"/><path d="M9 13h6"/></svg></span>
+            <h3>Producto final</h3>
+            <p>Frescos, deshidratados o extractos, listos para tu mesa o negocio.</p>
+          </li>
         </ol>
-        <p class="fuentes__aviso">La información sobre propiedades tiene fines educativos y se basa en estudios científicos. No constituye consejo médico ni promete resultados. Ante cualquier duda de salud, consulta a un profesional.</p>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ===== CONTACTO ===== -->
-  <section id="contacto" class="section section--dark">
-    <div class="container contacto">
-      <p class="eyebrow eyebrow--light">Contacto</p>
-      <h2>¿Quieres pedir o saber más?</h2>
-      <p class="contacto__lead">Escríbenos y te contamos disponibilidad, precios y despachos.</p>
-      <div class="contacto__actions">
-        <a class="btn btn--wa" href="https://wa.me/56934584090" target="_blank" rel="noopener">
-          💬 WhatsApp
-        </a>
-        <a class="btn btn--primary" href="mailto:hongosparaelsur@gmail.com">
-          ✉️ Correo
-        </a>
-        <a class="btn btn--ghost btn--ghost-light" href="https://instagram.com/hongosdelsurosorno" target="_blank" rel="noopener">
-          📸 Instagram
-        </a>
+    <!-- ===== 04 · PRODUCTOS ===== -->
+    <section id="productos" class="section">
+      <div class="container">
+        <div class="section__head reveal">
+          <p class="eyebrow"><span class="eyebrow__num">04</span> Productos</p>
+          <h2>Qué ofrecemos hoy</h2>
+          <p class="lead">Disponibilidad según temporada y lote. Escríbenos para conocer el stock actual.</p>
+        </div>
+
+        <div class="products">
+          <article class="pcard reveal">
+            <h3>Hongos frescos</h3>
+            <p>Cosechados a pedido, en su punto óptimo de sabor y textura. Para hogares, restaurantes y ferias.</p>
+            <a class="link-cta" href="https://wa.me/56934584090?text=Hola,%20quiero%20consultar%20disponibilidad%20de%20hongos%20frescos" target="_blank" rel="noopener">Consultar disponibilidad →</a>
+          </article>
+          <article class="pcard reveal">
+            <h3>Deshidratados</h3>
+            <p>Conservan aroma y sabor concentrados, con larga duración. Prácticos para cocina y despacho.</p>
+            <a class="link-cta" href="https://wa.me/56934584090?text=Hola,%20quiero%20consultar%20por%20hongos%20deshidratados" target="_blank" rel="noopener">Consultar disponibilidad →</a>
+          </article>
+          <article class="pcard reveal">
+            <h3>Extractos y derivados</h3>
+            <p>Línea en desarrollo a partir de especies funcionales como Reishi y Cola de Pavo.</p>
+            <a class="link-cta" href="https://wa.me/56934584090?text=Hola,%20quiero%20saber%20de%20sus%20extractos%20y%20derivados" target="_blank" rel="noopener">Consultar →</a>
+          </article>
+        </div>
+
+        <div class="b2b reveal">
+          <div>
+            <h3>¿Tienes un restaurante, verdulería o tienda?</h3>
+            <p>Trabajamos con negocios que quieran comercializar o cocinar con nuestros hongos. Conversemos un plan de abastecimiento.</p>
+          </div>
+          <a class="btn btn--primary" href="https://wa.me/56934584090?text=Hola,%20represento%20un%20negocio%20y%20quiero%20cotizar" target="_blank" rel="noopener">Consulta para negocios</a>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- ===== 05 · INVESTIGACIÓN Y DESARROLLO ===== -->
+    <section id="id" class="section section--forest">
+      <div class="container grid-2 grid-2--reverse">
+        <div class="reveal">
+          <p class="eyebrow eyebrow--light"><span class="eyebrow__num">05</span> Investigación y desarrollo</p>
+          <h2>No solo vendemos hongos.<br />Desarrollamos capacidades.</h2>
+          <p class="lead lead--light">
+            Somos una empresa pequeña, pero con foco técnico. Experimentamos y
+            desarrollamos capacidades propias alrededor del cultivo y los productos.
+          </p>
+          <p class="lead--light">Estamos trabajando en áreas como:</p>
+          <ul class="chips">
+            <li>Aislados y genética</li>
+            <li>Formulación de sustratos</li>
+            <li>Control de contaminación</li>
+            <li>Técnicas de inoculación</li>
+            <li>Extracción</li>
+            <li>Deshidratación</li>
+            <li>Experimentación y R&amp;D</li>
+          </ul>
+          <p class="fineprint">No fingimos ser un gran centro de investigación: es el trabajo real de una empresa local que está creciendo y aprendiendo.</p>
+        </div>
+        <div class="media-frame reveal">
+          <img src="img/laboratorio.jpg" alt="Trabajo técnico y de laboratorio en Hongos del Sur" loading="lazy"
+               onerror="this.style.display='none';this.parentNode.classList.add('placeholder')" />
+          <span class="placeholder__label">Foto de laboratorio / trabajo técnico<br /><small>img/laboratorio.jpg</small></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 06 · GALERÍA ===== -->
+    <section id="galeria" class="section section--sand">
+      <div class="container">
+        <div class="section__head reveal">
+          <p class="eyebrow"><span class="eyebrow__num">06</span> Galería</p>
+          <h2>Cultivo, cosecha y producción</h2>
+          <p class="lead">Imágenes reales de nuestro trabajo. Iremos sumando más.</p>
+        </div>
+        <div class="gallery">
+          <figure class="gitem gitem--tall reveal"><img src="img/ostra.jpg" alt="Hongos ostra creciendo" loading="lazy" onerror="this.style.display='none';this.parentNode.classList.add('placeholder')"><span class="placeholder__label">img/galeria-1.jpg</span></figure>
+          <figure class="gitem reveal"><img src="img/melena.jpg" alt="Melena de León en cultivo" loading="lazy" onerror="this.style.display='none';this.parentNode.classList.add('placeholder')"><span class="placeholder__label">img/galeria-2.jpg</span></figure>
+          <figure class="gitem reveal"><img src="img/shiitake.jpg" alt="Shiitake cosechado" loading="lazy" onerror="this.style.display='none';this.parentNode.classList.add('placeholder')"><span class="placeholder__label">img/galeria-3.jpg</span></figure>
+          <figure class="gitem reveal"><img src="img/nosotros.jpg" alt="Producción de Hongos del Sur" loading="lazy" onerror="this.style.display='none';this.parentNode.classList.add('placeholder')"><span class="placeholder__label">img/galeria-4.jpg</span></figure>
+          <figure class="gitem gitem--wide reveal"><img src="img/chestnut.jpg" alt="Hongos Chestnut" loading="lazy" onerror="this.style.display='none';this.parentNode.classList.add('placeholder')"><span class="placeholder__label">img/galeria-5.jpg</span></figure>
+          <figure class="gitem reveal"><img src="img/galeria-6.jpg" alt="Instalaciones de cultivo" loading="lazy" onerror="this.style.display='none';this.parentNode.classList.add('placeholder')"><span class="placeholder__label">Tu foto<br /><small>img/galeria-6.jpg</small></span></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 07 · CONTACTO ===== -->
+    <section id="contacto" class="section section--dark">
+      <div class="container contacto">
+        <div class="reveal">
+          <p class="eyebrow eyebrow--light"><span class="eyebrow__num">07</span> Contacto</p>
+          <h2>Conversemos.</h2>
+          <p class="lead lead--light">Escríbenos por WhatsApp o redes y te contamos disponibilidad, precios y despachos.</p>
+          <div class="contacto__actions">
+            <a class="btn btn--wa" href="https://wa.me/56934584090?text=Hola%20Hongos%20del%20Sur,%20quiero%20hacer%20una%20consulta" target="_blank" rel="noopener">WhatsApp</a>
+            <a class="btn btn--glass" href="https://instagram.com/hongosdelsurosorno" target="_blank" rel="noopener">Instagram</a>
+            <a class="btn btn--glass" href="mailto:hongosparaelsur@gmail.com">Correo</a>
+          </div>
+        </div>
+        <div class="contacto__meta reveal">
+          <div><span class="meta-k">Ubicación</span><span class="meta-v">Osorno, Región de Los Lagos, Chile</span></div>
+          <div><span class="meta-k">WhatsApp</span><span class="meta-v">+56 9 3458 4090</span></div>
+          <div><span class="meta-k">Correo</span><span class="meta-v">hongosparaelsur@gmail.com</span></div>
+          <div><span class="meta-k">Instagram</span><span class="meta-v">@hongosdelsurosorno</span></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
 
   <!-- ===== FOOTER ===== -->
   <footer class="footer">
     <div class="container footer__inner">
       <span class="footer__brand">
-        <span class="footer__logo-chip"><img src="img/logo.png" alt="Hongos del Sur" /></span>
+        <span class="footer__logo-chip"><img src="img/logo.png" alt="Hongos del Sur" width="36" height="36" /></span>
         Hongos del Sur
       </span>
-      <span>© 2026 · Sur de Chile · hongosdelsur.cl</span>
+      <nav class="footer__nav">
+        <a href="#nosotros">Nosotros</a>
+        <a href="#hongos">Hongos</a>
+        <a href="#proceso">Proceso</a>
+        <a href="#productos">Productos</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+      <span class="footer__copy">© 2026 · Osorno, sur de Chile · hongosdelsur.cl</span>
     </div>
   </footer>
 
@@ -243,5 +452,6 @@
     </svg>
   </a>
 
+  <script src="app.js" defer></script>
 </body>
 </html>
