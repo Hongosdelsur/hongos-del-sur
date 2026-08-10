@@ -1,0 +1,2993 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#faf7f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161b17" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Inventario de insumos y trazabilidad de lotes - Hongos del Sur">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Inventario">
+<style>html{-webkit-tap-highlight-color:transparent}body{margin:0}</style>
+</head>
+<body><title>Inventario — Hongos del Sur</title>
+
+<style>
+/* ============================================================
+   Inventario — Hongos del Sur
+   Paleta y tipografía derivadas de DESIGN.md del sitio.
+   Sin dependencias externas: funciona sin internet.
+   ============================================================ */
+
+:root{
+  /* Superficies */
+  --paper:#faf7f0;
+  --sand:#f1ead9;
+  --cream:#fffdf8;
+  --line:rgba(32,33,28,.13);
+  --line-soft:rgba(32,33,28,.07);
+
+  /* Texto */
+  --ink:#20211c;
+  --ink-soft:#5a5e51;
+  --ink-faint:#8b8f7f;
+
+  /* Marca */
+  --forest:#223a2e;
+  --moss:#7b8a58;
+  --amber:#c07a34;
+  --earth:#8a6a45;
+
+  /* Acción */
+  --accent:#223a2e;
+  --accent-hi:#2f4f3c;
+  --on-accent:#faf7f0;
+
+  /* Estado (semántico, independiente del acento) */
+  --ok:#5f7a4a;
+  --ok-bg:rgba(95,122,74,.12);
+  --warn:#b5722c;
+  --warn-bg:rgba(181,114,44,.13);
+  --crit:#a33b28;
+  --crit-bg:rgba(163,59,40,.12);
+
+  /* Tipografía */
+  --f-display:ui-serif,Georgia,"Iowan Old Style","Times New Roman",serif;
+  --f-body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --f-mono:ui-monospace,"Cascadia Mono","SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+
+  --r:12px;
+  --r-lg:18px;
+  --shadow:0 1px 2px rgba(32,33,28,.05),0 6px 18px rgba(32,33,28,.05);
+}
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#161b17;
+    --sand:#1d241f;
+    --cream:#1e2620;
+    --line:rgba(233,229,217,.15);
+    --line-soft:rgba(233,229,217,.07);
+    --ink:#e9e5d9;
+    --ink-soft:#a2ab96;
+    --ink-faint:#78806e;
+    --forest:#8fa367;
+    --moss:#9bb87a;
+    --amber:#d99a52;
+    --earth:#b09070;
+    --accent:#8fa367;
+    --accent-hi:#a3b87b;
+    --on-accent:#12180f;
+    --ok:#9bb87a;
+    --ok-bg:rgba(155,184,122,.15);
+    --warn:#d99a52;
+    --warn-bg:rgba(217,154,82,.15);
+    --crit:#dc7a63;
+    --crit-bg:rgba(220,122,99,.15);
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#161b17; --sand:#1d241f; --cream:#1e2620;
+  --line:rgba(233,229,217,.15); --line-soft:rgba(233,229,217,.07);
+  --ink:#e9e5d9; --ink-soft:#a2ab96; --ink-faint:#78806e;
+  --forest:#8fa367; --moss:#9bb87a; --amber:#d99a52; --earth:#b09070;
+  --accent:#8fa367; --accent-hi:#a3b87b; --on-accent:#12180f;
+  --ok:#9bb87a; --ok-bg:rgba(155,184,122,.15);
+  --warn:#d99a52; --warn-bg:rgba(217,154,82,.15);
+  --crit:#dc7a63; --crit-bg:rgba(220,122,99,.15);
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+}
+:root[data-theme="light"]{
+  --paper:#faf7f0; --sand:#f1ead9; --cream:#fffdf8;
+  --line:rgba(32,33,28,.13); --line-soft:rgba(32,33,28,.07);
+  --ink:#20211c; --ink-soft:#5a5e51; --ink-faint:#8b8f7f;
+  --forest:#223a2e; --moss:#7b8a58; --amber:#c07a34; --earth:#8a6a45;
+  --accent:#223a2e; --accent-hi:#2f4f3c; --on-accent:#faf7f0;
+  --ok:#5f7a4a; --ok-bg:rgba(95,122,74,.12);
+  --warn:#b5722c; --warn-bg:rgba(181,114,44,.13);
+  --crit:#a33b28; --crit-bg:rgba(163,59,40,.12);
+  --shadow:0 1px 2px rgba(32,33,28,.05),0 6px 18px rgba(32,33,28,.05);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+.hds{
+  font-family:var(--f-body);
+  color:var(--ink);
+  background:var(--paper);
+  /* Trama de papel milimetrado, muy tenue — guiño al cuaderno de laboratorio */
+  background-image:
+    linear-gradient(var(--line-soft) 1px,transparent 1px),
+    linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);
+  background-size:26px 26px;
+  min-height:100vh;
+  -webkit-text-size-adjust:100%;
+  padding-bottom:calc(78px + env(safe-area-inset-bottom,0px));
+  line-height:1.5;
+  font-size:16px;
+}
+.hds :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.hds button{font:inherit;color:inherit;cursor:pointer}
+.hds input,.hds select,.hds textarea{font:inherit;color:inherit}
+
+.wrap{max-width:680px;margin:0 auto;padding:0 14px}
+
+/* ---------- Cabecera ---------- */
+.top{
+  position:sticky;top:0;z-index:40;
+  background:color-mix(in srgb,var(--paper) 88%,transparent);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.top__in{display:flex;align-items:center;gap:11px;padding:11px 14px;max-width:680px;margin:0 auto}
+.mark{width:34px;height:34px;flex:none;border-radius:50%;border:1.5px solid var(--accent);display:grid;place-items:center;color:var(--accent)}
+.mark svg{width:19px;height:19px;display:block}
+.top__txt{min-width:0;flex:1}
+.top__t{font-family:var(--f-display);font-size:1.12rem;font-weight:600;letter-spacing:-.01em;line-height:1.15}
+.top__s{font-family:var(--f-mono);font-size:.63rem;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint);margin-top:1px}
+.iconbtn{
+  width:38px;height:38px;flex:none;border-radius:10px;border:1px solid var(--line);
+  background:var(--cream);display:grid;place-items:center;color:var(--ink-soft);
+}
+.iconbtn:hover{border-color:var(--accent);color:var(--accent)}
+.iconbtn svg{width:18px;height:18px}
+/* display:grid gana sobre el [hidden] del navegador; hay que desactivarlo a mano. */
+.iconbtn[hidden],.mark[hidden]{display:none}
+
+/* Barra de avance del conteo */
+.prog{padding:0 14px 9px;max-width:680px;margin:0 auto}
+.prog__lbl{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--f-mono);font-size:.66rem;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:5px}
+.prog__lbl b{color:var(--ink);font-weight:600}
+.prog__bar{height:4px;border-radius:99px;background:var(--line);overflow:hidden}
+.prog__fill{height:100%;background:var(--accent);border-radius:99px;transition:width .35s cubic-bezier(.4,0,.2,1)}
+
+/* ---------- Grupos de etapa ---------- */
+.stage{
+  background:var(--cream);border:1px solid var(--line);border-radius:var(--r-lg);
+  margin-top:12px;overflow:hidden;box-shadow:var(--shadow);
+}
+.stage__head{
+  display:flex;align-items:flex-start;gap:11px;width:100%;text-align:left;
+  padding:14px;background:none;border:0;border-bottom:1px solid transparent;
+}
+.stage.open .stage__head{border-bottom-color:var(--line-soft)}
+.stage__n{
+  font-family:var(--f-mono);font-size:.68rem;font-weight:600;letter-spacing:.04em;
+  width:26px;height:26px;flex:none;border-radius:8px;display:grid;place-items:center;
+  background:var(--sand);color:var(--earth);margin-top:1px;
+}
+.stage__txt{flex:1;min-width:0}
+.stage__t{display:block;font-family:var(--f-display);font-size:1.04rem;font-weight:600;line-height:1.25;text-wrap:balance}
+.stage__d{display:block;font-size:.76rem;color:var(--ink-faint);margin-top:3px;line-height:1.4}
+.stage__c{font-family:var(--f-mono);font-size:.7rem;color:var(--ink-soft);flex:none;display:flex;align-items:center;gap:7px;margin-top:3px;font-variant-numeric:tabular-nums}
+.chev{width:15px;height:15px;transition:transform .25s;color:var(--ink-faint)}
+.stage.open .chev{transform:rotate(180deg)}
+.stage__body{display:none}
+.stage.open .stage__body{display:block}
+
+.samebar{display:flex;justify-content:flex-end;padding:9px 14px 4px}
+.btn-same{
+  border:1px dashed var(--line);background:none;color:var(--ink-soft);
+  border-radius:99px;padding:6px 13px;font-size:.76rem;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn-same:hover{border-color:var(--accent);border-style:solid;color:var(--accent)}
+.btn-same svg{width:13px;height:13px}
+
+/* ---------- Fila de insumo ---------- */
+.row{border-top:1px solid var(--line-soft)}
+.row:first-child{border-top:0}
+.row__top{display:flex;align-items:flex-start;gap:10px;padding:11px 14px}
+.row__tap{flex:1;min-width:0;background:none;border:0;padding:0;text-align:left}
+.row__nom{font-size:.94rem;font-weight:500;line-height:1.3;display:block}
+.row__meta{
+  display:flex;flex-wrap:wrap;align-items:center;gap:5px 8px;margin-top:4px;
+  font-family:var(--f-mono);font-size:.67rem;color:var(--ink-faint);letter-spacing:.02em;
+}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:99px;font-weight:600;letter-spacing:.03em}
+.pill--ok{background:var(--ok-bg);color:var(--ok)}
+.pill--warn{background:var(--warn-bg);color:var(--warn)}
+.pill--crit{background:var(--crit-bg);color:var(--crit)}
+.pill--vivo{background:var(--sand);color:var(--earth)}
+.stage__c{white-space:nowrap}
+.dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex:none}
+
+.stepper{display:flex;align-items:center;gap:0;flex:none;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.stepper button{
+  width:34px;height:40px;border:0;background:none;color:var(--ink-soft);
+  font-size:1.15rem;line-height:1;display:grid;place-items:center;
+}
+.stepper button:hover{background:var(--sand);color:var(--accent)}
+.stepper input{
+  width:60px;height:40px;border:0;border-left:1px solid var(--line-soft);border-right:1px solid var(--line-soft);
+  background:none;text-align:center;font-family:var(--f-mono);font-size:.95rem;font-weight:600;
+  font-variant-numeric:tabular-nums;padding:0 2px;-moz-appearance:textfield;
+}
+.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.row.done .stepper{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
+.row.pend .row__nom::after{
+  content:"";display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:var(--amber);margin-left:7px;vertical-align:middle;
+}
+
+/* Cajón de detalle */
+.det{display:none;padding:0 14px 14px;margin-left:0}
+.row.open .det{display:block}
+.det__box{background:var(--sand);border-radius:var(--r);padding:12px}
+.det__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:11px}
+.det__k{font-family:var(--f-mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)}
+.det__v{font-family:var(--f-mono);font-size:.9rem;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+.det__row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.det__row label{font-size:.8rem;color:var(--ink-soft);flex:1;min-width:120px}
+.mini{width:88px;height:34px;border:1px solid var(--line);border-radius:8px;background:var(--cream);text-align:center;font-family:var(--f-mono);font-size:.86rem;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.mini::-webkit-outer-spin-button,.mini::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.spark{margin-top:11px;height:34px;width:100%;display:block;overflow:visible}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font-size:.78rem;text-decoration:underline;text-underline-offset:3px;margin-top:10px}
+
+/* ---------- Botones ---------- */
+.btn{
+  border:0;border-radius:12px;padding:13px 18px;font-size:.92rem;font-weight:600;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;
+}
+.btn--primary{background:var(--accent);color:var(--on-accent)}
+.btn--primary:hover{background:var(--accent-hi)}
+.btn--ghost{background:var(--cream);color:var(--ink);border:1px solid var(--line)}
+.btn--ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn--danger{background:var(--cream);color:var(--crit);border:1px solid var(--crit-bg)}
+.btn svg{width:16px;height:16px;flex:none}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+
+/* ---------- Resumen ---------- */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.tile{background:var(--cream);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px;box-shadow:var(--shadow)}
+.tile__k{font-family:var(--f-mono);font-size:.6rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);line-height:1.3}
+.tile__v{font-family:var(--f-mono);font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin-top:7px;line-height:1}
+.tile__s{font-size:.72rem;color:var(--ink-faint);margin-top:5px;line-height:1.35}
+.tile--crit .tile__v{color:var(--crit)}
+.tile--warn .tile__v{color:var(--warn)}
+
+.card{background:var(--cream);border:1px solid var(--line);border-radius:var(--r-lg);margin-top:12px;box-shadow:var(--shadow);overflow:hidden}
+.card__head{padding:14px 14px 11px;display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.card__t{font-family:var(--f-display);font-size:1.02rem;font-weight:600}
+.card__n{font-family:var(--f-mono);font-size:.68rem;color:var(--ink-faint)}
+.card__body{padding:0 14px 14px}
+
+.buy{display:flex;align-items:center;gap:11px;padding:10px 14px;border-top:1px solid var(--line-soft)}
+.buy__t{flex:1;min-width:0}
+.buy__n{font-size:.9rem;font-weight:500;line-height:1.3}
+.buy__m{font-family:var(--f-mono);font-size:.66rem;color:var(--ink-faint);margin-top:3px}
+.buy__q{font-family:var(--f-mono);font-size:1rem;font-weight:700;text-align:right;flex:none;max-width:104px;font-variant-numeric:tabular-nums}
+.buy__q small{display:block;font-size:.62rem;font-weight:400;color:var(--ink-faint);letter-spacing:.03em}
+button.buy{width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line-soft)}
+button.buy:hover{background:var(--sand)}
+
+.bars{display:flex;flex-direction:column;gap:9px}
+.bar__l{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px}
+.bar__l span:last-child{font-family:var(--f-mono);font-variant-numeric:tabular-nums;color:var(--ink-soft)}
+.bar__t{height:6px;background:var(--sand);border-radius:99px;overflow:hidden}
+.bar__f{height:100%;border-radius:99px;background:var(--moss)}
+
+.hist{width:100%;border-collapse:collapse;font-family:var(--f-mono);font-size:.76rem;font-variant-numeric:tabular-nums}
+.hist th{text-align:left;font-weight:600;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);padding:0 0 7px}
+.hist td{padding:7px 0;border-top:1px solid var(--line-soft)}
+.hist td:nth-child(n+2),.hist th:nth-child(n+2){text-align:right}
+.tablescroll{overflow-x:auto}
+
+/* ---------- Insumos ---------- */
+.search{width:100%;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--cream);padding:0 14px;font-size:.92rem;margin-top:12px}
+.ilist{margin-top:12px}
+.igroup__t{font-family:var(--f-mono);font-size:.63rem;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-faint);padding:16px 4px 7px}
+.irow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--cream);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;margin-bottom:7px}
+.irow:hover{border-color:var(--accent)}
+.irow__t{flex:1;min-width:0}
+.irow__n{font-size:.9rem;font-weight:500;line-height:1.3}
+.irow__m{font-family:var(--f-mono);font-size:.66rem;color:var(--ink-faint);margin-top:3px}
+.irow.off{opacity:.5}
+.irow__go{color:var(--ink-faint);flex:none;width:15px;height:15px}
+
+/* ---------- Hoja inferior (modal) ---------- */
+.sheet{position:fixed;inset:0;z-index:60;display:none}
+.sheet.open{display:block}
+.sheet__bg{position:absolute;inset:0;background:rgba(20,22,18,.45);backdrop-filter:blur(2px)}
+.sheet__panel{
+  position:absolute;left:0;right:0;bottom:0;max-height:88vh;overflow-y:auto;
+  background:var(--paper);border-radius:22px 22px 0 0;border-top:1px solid var(--line);
+  padding:8px 16px calc(20px + env(safe-area-inset-bottom,0px));
+  max-width:680px;margin:0 auto;animation:up .28s cubic-bezier(.32,.72,0,1);
+}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.grab{width:38px;height:4px;border-radius:99px;background:var(--line);margin:6px auto 14px}
+.sheet__t{font-family:var(--f-display);font-size:1.14rem;font-weight:600;margin-bottom:3px}
+.sheet__d{font-size:.8rem;color:var(--ink-faint);margin-bottom:16px;line-height:1.5}
+.field{margin-bottom:13px}
+.field label{display:block;font-family:var(--f-mono);font-size:.62rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:5px}
+.field input,.field select{width:100%;height:44px;border:1px solid var(--line);border-radius:11px;background:var(--cream);padding:0 13px;font-size:.92rem}
+.field textarea{width:100%;min-height:82px;border:1px solid var(--line);border-radius:11px;background:var(--cream);padding:11px 13px;font-size:.92rem;line-height:1.5;resize:vertical;font-family:inherit}
+.field input[type="date"]{-webkit-appearance:none;appearance:none}
+.field .hint{display:block;font-family:var(--f-body);font-size:.72rem;letter-spacing:0;text-transform:none;color:var(--ink-faint);margin-top:6px;line-height:1.5}
+.field select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.menu__item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;padding:13px 4px;border-bottom:1px solid var(--line-soft);font-size:.92rem}
+.menu__item:last-child{border-bottom:0}
+.menu__item svg{width:17px;height:17px;color:var(--ink-faint);flex:none}
+.menu__item small{display:block;font-size:.72rem;color:var(--ink-faint);margin-top:2px;font-weight:400}
+.menu__item span{flex:1}
+
+/* ---------- Navegación inferior ---------- */
+.tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  background:color-mix(in srgb,var(--paper) 92%,transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.tabs__in{display:flex;max-width:680px;margin:0 auto}
+.tab{flex:1;background:none;border:0;padding:9px 4px 11px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink-faint);position:relative}
+.tab svg{width:20px;height:20px}
+.tab span{font-size:.66rem;font-weight:500;letter-spacing:.01em}
+.tab.on{color:var(--accent)}
+.tab .badge{
+  position:absolute;top:5px;left:50%;margin-left:6px;min-width:16px;height:16px;
+  border-radius:99px;background:var(--crit);color:#fff;font-family:var(--f-mono);
+  font-size:.58rem;font-weight:700;display:grid;place-items:center;padding:0 4px;
+  font-style:normal;
+}
+/* display:grid de arriba gana sobre el [hidden] del navegador; hay que desactivarlo aquí. */
+.tab .badge[hidden]{display:none}
+
+/* ---------- Lotes: lista ---------- */
+.chips{display:flex;gap:7px;overflow-x:auto;padding:12px 2px 3px;margin:0 -2px}
+.chip{
+  flex:none;border:1px solid var(--line);background:var(--cream);color:var(--ink-soft);
+  border-radius:99px;padding:6px 13px;font-size:.78rem;white-space:nowrap;
+}
+.chip.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.lote{
+  display:flex;align-items:flex-start;gap:11px;width:100%;text-align:left;
+  background:var(--cream);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:12px 13px;margin-bottom:8px;box-shadow:var(--shadow);
+}
+.lote:hover{border-color:var(--accent)}
+.lote__t{flex:1;min-width:0}
+.lote__cod{font-family:var(--f-mono);font-size:.8rem;font-weight:700;letter-spacing:.04em}
+.lote__nom{font-size:.94rem;font-weight:500;margin-top:2px;line-height:1.3}
+.lote__m{display:flex;flex-wrap:wrap;align-items:center;gap:5px 9px;margin-top:6px;font-family:var(--f-mono);font-size:.66rem;color:var(--ink-faint)}
+.lote__r{flex:none;text-align:right;padding-top:2px}
+.lote__kg{font-family:var(--f-mono);font-size:1.02rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.lote__kg small{display:block;font-size:.6rem;font-weight:400;color:var(--ink-faint);margin-top:3px;letter-spacing:.03em}
+/* Las filas se arman con <span> dentro de botones: hay que volverlos bloque. */
+.lote__cod,.lote__nom,.lote__kg,.ev__b,.ev__t,.ev__d,.ev__x,.buy__n,.buy__m{display:block}
+.est{
+  display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;
+  font-family:var(--f-mono);font-size:.62rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+}
+.est--prep{background:var(--line-soft);color:var(--ink-soft)}
+.est--inoc{background:var(--sand);color:var(--earth)}
+.est--incu{background:var(--warn-bg);color:var(--warn)}
+.est--fruc{background:var(--ok-bg);color:var(--ok)}
+.est--cose{background:var(--warn-bg);color:var(--amber)}
+.est--fin{background:var(--line-soft);color:var(--ink-faint)}
+.est--desc{background:var(--crit-bg);color:var(--crit)}
+.tarde{color:var(--crit)}
+
+/* ---------- Lotes: ficha ---------- */
+.ficha{background:var(--cream);border:1px solid var(--line);border-radius:var(--r-lg);padding:15px;margin-top:12px;box-shadow:var(--shadow)}
+.ficha__cod{font-family:var(--f-mono);font-size:1.3rem;font-weight:700;letter-spacing:.02em;line-height:1.1}
+.ficha__nom{font-family:var(--f-display);font-size:1.12rem;font-weight:600;margin-top:7px;line-height:1.25}
+.ficha__sci{font-family:var(--f-mono);font-size:.69rem;color:var(--moss);margin-top:3px;letter-spacing:.02em}
+.ficha__meta{display:flex;flex-wrap:wrap;align-items:center;gap:7px 11px;margin-top:11px;font-family:var(--f-mono);font-size:.68rem;color:var(--ink-faint)}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.acts .btn{padding:12px 9px;font-size:.85rem}
+.acts .full{grid-column:1 / -1}
+
+/* Línea de tiempo del lote */
+.ev{display:flex;gap:10px;width:100%;text-align:left;background:none;border:0;padding:11px 0;border-top:1px solid var(--line-soft)}
+.ev:first-child{border-top:0}
+.ev__i{flex:none;width:27px;height:27px;border-radius:9px;display:grid;place-items:center;background:var(--sand);color:var(--earth);margin-top:1px}
+.ev__i svg{width:14px;height:14px}
+.ev--cos .ev__i{background:var(--ok-bg);color:var(--ok)}
+.ev--cont .ev__i{background:var(--crit-bg);color:var(--crit)}
+.ev--est .ev__i{background:var(--warn-bg);color:var(--warn)}
+.ev__b{flex:1;min-width:0}
+.ev__t{font-size:.89rem;font-weight:500;line-height:1.35}
+.ev__d{font-family:var(--f-mono);font-size:.64rem;color:var(--ink-faint);margin-top:3px;letter-spacing:.03em}
+.ev__x{font-size:.82rem;color:var(--ink-soft);margin-top:5px;line-height:1.5;white-space:pre-wrap}
+
+/* Fotos */
+.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
+.gal button{padding:0;border:0;background:none;display:block;border-radius:10px;overflow:hidden}
+.gal img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:var(--sand);border:1px solid var(--line-soft);border-radius:10px}
+.evgal{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.evgal button{padding:0;border:0;background:none}
+.evgal img{width:62px;height:62px;object-fit:cover;border-radius:9px;display:block;background:var(--sand);border:1px solid var(--line-soft)}
+.lupa{position:fixed;inset:0;z-index:80;background:rgba(14,17,13,.94);display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;padding:20px}
+.lupa.open{display:flex}
+.lupa img{max-width:100%;max-height:76vh;border-radius:12px;display:block}
+.lupa .btn{max-width:320px}
+
+/* ---------- QR y etiqueta ---------- */
+.qrbox{display:flex;justify-content:center;padding:14px;background:#fff;border-radius:var(--r);border:1px solid var(--line)}
+.qrbox svg{width:200px;height:200px;display:block}
+.qrurl{font-family:var(--f-mono);font-size:.66rem;color:var(--ink-faint);word-break:break-all;text-align:center;margin-top:9px;line-height:1.5}
+
+/* La etiqueta: mismo componente en la vista previa y en el papel.
+   Tinta negra sobre blanco a propósito, para que salga igual en cualquier impresora. */
+.et{
+  width:64mm;height:46mm;padding:4mm 4.5mm;background:#fff;color:#111;
+  border:.25mm dashed #b9b9b9;display:flex;gap:3mm;align-items:stretch;
+  font-family:var(--f-body);overflow:hidden;
+}
+.et--s{width:48mm;height:34mm;padding:2.8mm 3mm;gap:2mm}
+.et__t{flex:1;min-width:0;display:flex;flex-direction:column}
+.et__marca{display:flex;align-items:center;gap:1.6mm;font-family:var(--f-mono);font-size:6.2pt;letter-spacing:.14em;text-transform:uppercase;color:#333}
+.et__marca svg{width:4.2mm;height:4.2mm;flex:none}
+.et--s .et__marca{font-size:5pt;gap:1.2mm}
+.et--s .et__marca svg{width:3.4mm;height:3.4mm}
+.et__nom{font-family:var(--f-display);font-size:12pt;font-weight:700;line-height:1.1;margin-top:2mm;letter-spacing:-.01em}
+.et--s .et__nom{font-size:9pt;margin-top:1.4mm}
+.et__sci{font-family:var(--f-mono);font-size:5.8pt;color:#555;margin-top:.8mm;letter-spacing:.02em}
+.et--s .et__sci{font-size:4.8pt}
+.et__sep{border-top:.3mm solid #111;margin:auto 0 1.8mm;padding-top:1.6mm}
+.et--s .et__sep{margin-bottom:1.2mm;padding-top:1.1mm}
+.et__k{font-family:var(--f-mono);font-size:5.4pt;letter-spacing:.14em;text-transform:uppercase;color:#666}
+.et--s .et__k{font-size:4.6pt}
+.et__cod{font-family:var(--f-mono);font-size:11pt;font-weight:700;letter-spacing:.04em;line-height:1.15}
+.et--s .et__cod{font-size:8.4pt}
+.et__f{font-family:var(--f-mono);font-size:6.2pt;color:#333;margin-top:1.2mm;white-space:nowrap}
+.et--s .et__f{font-size:5pt;margin-top:.8mm}
+.et__qr{flex:none;width:21mm;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+.et--s .et__qr{width:17mm}
+.et__qr svg{width:21mm;height:21mm;display:block}
+.et--s .et__qr svg{width:17mm;height:17mm}
+.et__qr span{font-family:var(--f-mono);font-size:5pt;color:#666;margin-top:1mm;text-align:center;letter-spacing:.06em}
+.et--s .et__qr span{display:none}
+.etprev{display:flex;justify-content:center;padding:12px 0 4px}
+
+/* La hoja de impresión vive fuera de la app: en pantalla no se ve, en papel es lo único que sale. */
+#hojaEtiq{display:none}
+.hojaGrid{display:flex;flex-wrap:wrap;align-content:flex-start}
+.et{break-inside:avoid;page-break-inside:avoid}
+@media print{
+  .hds{display:none !important}
+  #hojaEtiq{display:block;background:#fff}
+}
+@page{size:A4;margin:8mm}
+
+/* ---------- Varios ---------- */
+.empty{text-align:center;padding:34px 20px;color:var(--ink-faint);font-size:.86rem;line-height:1.6}
+.empty svg{width:32px;height:32px;margin-bottom:11px;opacity:.5}
+.note{font-size:.76rem;color:var(--ink-faint);line-height:1.55;margin-top:12px;padding:0 4px}
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%) translateY(20px);
+  bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:70;
+  background:var(--ink);color:var(--paper);padding:11px 18px;border-radius:99px;
+  font-size:.84rem;font-weight:500;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;
+  max-width:88vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+h1,h2,h3,p,table{margin:0}
+
+@media (min-width:560px){
+  .tiles{grid-template-columns:repeat(4,1fr)}
+  .row__nom{font-size:.97rem}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+
+<div class="hds">
+
+<header class="top">
+  <div class="top__in">
+    <div class="mark" id="hMark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.2 10.5c0-4.2 3.9-7 8.8-7s8.8 2.8 8.8 7c0 1.1-.9 1.7-2.2 1.7H5.4c-1.3 0-2.2-.6-2.2-1.7Z"/>
+        <path d="M9.6 12.2v5.4c0 1.6.9 2.6 2.4 2.6s2.4-1 2.4-2.6v-5.4"/>
+      </svg>
+    </div>
+    <button class="iconbtn" id="btnAtras" aria-label="Volver a la lista de lotes" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <div class="top__txt">
+      <h1 class="top__t" id="hTitle">Inventario</h1>
+      <div class="top__s" id="hSub">Hongos del Sur</div>
+    </div>
+    <button class="iconbtn" id="btnMenu" aria-label="Menú y respaldos">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+    </button>
+  </div>
+  <div class="prog" id="progWrap">
+    <div class="prog__lbl"><span id="progTxt">—</span><span id="progWeek"></span></div>
+    <div class="prog__bar"><div class="prog__fill" id="progFill" style="width:0%"></div></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="tab-conteo"></section>
+  <section id="tab-lotes" hidden></section>
+  <section id="tab-ficha" hidden></section>
+  <section id="tab-resumen" hidden></section>
+  <section id="tab-insumos" hidden></section>
+</main>
+
+<nav class="tabs" aria-label="Secciones">
+  <div class="tabs__in">
+    <button class="tab on" data-tab="conteo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+      <span>Conteo</span>
+    </button>
+    <button class="tab" data-tab="lotes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12.4 21.6a2 2 0 0 1-2.8 0l-7.2-7.2a2 2 0 0 1-.6-1.4V4.4A2 2 0 0 1 3.8 2.4h8.6a2 2 0 0 1 1.4.6l6.8 6.8a2 2 0 0 1 0 2.8Z"/><circle cx="7.3" cy="7.3" r="1.3"/></svg>
+      <span>Lotes</span>
+    </button>
+    <button class="tab" data-tab="resumen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-6M22 19H2"/></svg>
+      <span>Resumen</span>
+      <em class="badge" id="tabBadge" hidden></em>
+    </button>
+    <button class="tab" data-tab="insumos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7 12 3 4 7l8 4 8-4Z"/><path d="M4 12l8 4 8-4M4 17l8 4 8-4"/></svg>
+      <span>Insumos</span>
+    </button>
+  </div>
+</nav>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true">
+  <div class="sheet__bg" data-close="1"></div>
+  <div class="sheet__panel" id="sheetPanel"></div>
+</div>
+
+<div class="lupa" id="lupa" role="dialog" aria-modal="true" aria-label="Fotografía">
+  <img id="lupaImg" alt="">
+  <button class="btn btn--ghost" id="lupaBorrar">Eliminar esta foto</button>
+  <button class="btn btn--primary" id="lupaCerrar">Cerrar</button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+</div>
+
+<!-- Hoja de etiquetas: invisible en pantalla, es lo único que se imprime. -->
+<div id="hojaEtiq" aria-hidden="true"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   1. Datos base — catálogo inicial de insumos por etapa
+   ============================================================ */
+
+var ETAPAS = [
+  {k:"1", n:"Aislación de cepas",     d:"Compro grano con la genética y aíslo en agar"},
+  {k:"2", n:"Cultivo líquido",        d:"Frascos con solución nutritiva, inoculados desde agar"},
+  {k:"3", n:"Grain spawn",            d:"Grano inoculado con el cultivo líquido"},
+  {k:"4", n:"Bolsas de sustrato",     d:"Mezcla en mushbag PP5, esterilizar e inocular"},
+  {k:"5", n:"Cosecha y post cosecha", d:"Bandejas, envasado, deshidratado y despacho"},
+  {k:"c", n:"Compartidos",            d:"Se usan en varias etapas — se cuentan una sola vez"}
+];
+
+// [etapa, nombre, unidad, mínimo, tipo]  ·  tipo "v" = stock vivo (no se compra)
+var SEMILLA = [
+  ["1","Placas Petri 90 mm","unidades",50],
+  ["1","Agar-agar","g",100],
+  ["1","Extracto de malta","g",250],
+  ["1","Dextrosa","g",250],
+  ["1","Peptona","g",50],
+  ["1","Hojas de bisturí Nº11","unidades",10],
+  ["1","Parafilm","rollos",1],
+  ["1","Grano con genética (compra)","kg",1],
+  ["1","Placas madre vivas","placas",6,"v"],
+
+  ["2","Frascos vidrio 500 ml","unidades",12],
+  ["2","Tapas con filtro y puerto","unidades",12],
+  ["2","Puertos autosellantes","unidades",20],
+  ["2","Filtro sintético (poliéster)","m",1],
+  ["2","Extracto de malta light","g",500],
+  ["2","Miel","g",500],
+  ["2","Jeringas 20 ml","unidades",20],
+  ["2","Agujas 18G","unidades",30],
+  ["2","Barras magnéticas","unidades",2],
+  ["2","Frascos de cultivo líquido listos","frascos",4,"v"],
+
+  ["3","Grano de trigo","kg",20],
+  ["3","Centeno","kg",10],
+  ["3","Mijo","kg",5],
+  ["3","Bolsas de spawn con filtro","unidades",30],
+  ["3","Frascos 1 L para spawn","unidades",12],
+  ["3","Bolsas de spawn colonizadas","bolsas",6,"v"],
+
+  ["4","Mushbag PP5 con filtro","unidades",150],
+  ["4","Aserrín de roble o álamo","kg",100],
+  ["4","Salvado de trigo (afrecho)","kg",30],
+  ["4","Paja picada","kg",20],
+  ["4","Harina de soja","kg",10],
+  ["4","Resistencia de selladora (repuesto)","unidades",1],
+  ["4","Bolsas en incubación","bolsas",0,"v"],
+  ["4","Bolsas en fructificación","bolsas",0,"v"],
+
+  ["5","Bandejas PET 250 g","unidades",100],
+  ["5","Film alimentario","rollos",2],
+  ["5","Bolsas kraft con ventana","unidades",100],
+  ["5","Etiquetas de producto","unidades",150],
+  ["5","Bolsas zip metalizadas","unidades",50],
+  ["5","Sílica gel","sobres",30],
+  ["5","Cajas de cartón para despacho","unidades",20],
+  ["5","Cinta de embalaje","rollos",3],
+  ["5","Guantes para alimentos","pares",100],
+  ["5","Bandejas de deshidratador","unidades",8],
+  ["5","Hongo fresco en cámara","kg",0,"v"],
+  ["5","Hongo deshidratado","kg",0,"v"],
+
+  ["c","Alcohol 96°","L",2],
+  ["c","Alcohol isopropílico 70%","L",1],
+  ["c","Agua destilada","L",10],
+  ["c","Guantes de nitrilo","pares",100],
+  ["c","Mascarillas","unidades",25],
+  ["c","Gas butano (mechero)","cartuchos",2],
+  ["c","Gas licuado (esterilización)","kg",15],
+  ["c","Yeso agrícola (CaSO₄)","kg",2],
+  ["c","Carbonato de calcio (CaCO₃)","kg",2],
+  ["c","Cloro o sanitizante","L",2],
+  ["c","Papel absorbente","rollos",4],
+  ["c","Etiquetas adhesivas en blanco","unidades",100],
+  ["c","Marcador permanente","unidades",2],
+  ["c","Cinta micropore","rollos",3],
+  ["c","Papel aluminio","rollos",2],
+  ["c","Bolsas ziploc","unidades",50]
+];
+
+var UNIDADES = ["unidades","kg","g","L","ml","m","rollos","bolsas","frascos","placas","pares","cartuchos","sobres","cajas","fardos"];
+var ENTERAS  = {unidades:1,rollos:1,bolsas:1,frascos:1,placas:1,pares:1,cartuchos:1,sobres:1,cajas:1,fardos:1};
+var PASOS    = {g:50,ml:100,kg:1,L:1,m:1};
+
+/* Especies. La sigla arma el código del lote; inc/fru son los días típicos de
+   incubación y de fructificación, solo para estimar cuándo toca cosechar. */
+var ESPECIES = [
+  {k:"MEL", n:"Melena de León", c:"Hericium erinaceus",       inc:18, fru:9},
+  {k:"OSA", n:"Ostra Azul",     c:"Pleurotus ostreatus",      inc:14, fru:6},
+  {k:"CHE", n:"Chestnut",       c:"Pholiota adiposa",         inc:24, fru:9},
+  {k:"SHI", n:"Shiitake",       c:"Lentinula edodes",         inc:70, fru:10},
+  {k:"OSD", n:"Ostra Dorado",   c:"Pleurotus citrinopileatus",inc:14, fru:6},
+  {k:"OSR", n:"Ostra Rosado",   c:"Pleurotus djamor",         inc:12, fru:5},
+  {k:"ENO", n:"Enoki",          c:"Flammulina velutipes",     inc:25, fru:14},
+  {k:"COR", n:"Cordyceps",      c:"Cordyceps militaris",      inc:30, fru:45},
+  {k:"REI", n:"Reishi",         c:"Ganoderma lucidum",        inc:30, fru:45},
+  {k:"COP", n:"Cola de Pavo",   c:"Trametes versicolor",      inc:25, fru:30},
+  {k:"OTR", n:"Otro",           c:"",                         inc:20, fru:10}
+];
+
+var ESTADOS = [
+  {k:"prep", n:"Preparación",    d:"Sustrato o grano preparado, todavía sin inocular"},
+  {k:"inoc", n:"Inoculado",      d:"Ya lleva la semilla"},
+  {k:"incu", n:"Incubación",     d:"Colonizando, en oscuridad"},
+  {k:"fruc", n:"Fructificación", d:"En cámara, formando primordios"},
+  {k:"cose", n:"Cosecha",        d:"Dando oleadas"},
+  {k:"fin",  n:"Finalizado",     d:"Cerrado, no se espera más producción"},
+  {k:"desc", n:"Descartado",     d:"Perdido por contaminación u otra causa"}
+];
+// Un lote deja de estar activo cuando se cierra o se descarta.
+var CERRADOS = {fin:1, desc:1};
+
+var EVENTOS = {
+  est:  "Cambio de estado",
+  cos:  "Cosecha",
+  cont: "Contaminación o descarte",
+  nota: "Observación",
+  foto: "Fotografía"
+};
+
+/* ============================================================
+   2. Estado y persistencia
+   ============================================================ */
+
+var CLAVE = "hds_inv_v1";
+var DB, vista = "conteo", filtro = "", abiertas = {"1":true};
+var loteAbierto = null, filtroLotes = "act";
+
+function nuevoId(){ return "i" + Math.random().toString(36).slice(2,9); }
+
+function semilla(){
+  return {
+    v: 1,
+    items: SEMILLA.map(function(s){
+      return {id:nuevoId(), et:s[0], nom:s[1], uni:s[2], min:s[3], costo:0, prov:"", tipo:s[4]||"n", off:false};
+    }),
+    semanas: [],
+    lotes: [],
+    cfg: {base:""}
+  };
+}
+
+// Los respaldos viejos no traen lotes ni configuración: se completan al cargar.
+function normalizar(d){
+  if(!Array.isArray(d.lotes)) d.lotes = [];
+  if(!d.cfg) d.cfg = {};
+  if(typeof d.cfg.base !== "string") d.cfg.base = "";
+  d.lotes.forEach(function(l){ if(!Array.isArray(l.ev)) l.ev = []; });
+  return d;
+}
+
+function cargar(){
+  try{
+    var crudo = localStorage.getItem(CLAVE);
+    if(crudo){
+      var d = JSON.parse(crudo);
+      if(d && d.items && d.semanas) return normalizar(d);
+    }
+  }catch(e){ /* almacenamiento no disponible o dato corrupto: partimos de cero */ }
+  return semilla();
+}
+
+var guardarPend = null;
+function guardar(){
+  clearTimeout(guardarPend);
+  guardarPend = setTimeout(function(){
+    try{ localStorage.setItem(CLAVE, JSON.stringify(DB)); }
+    catch(e){ avisar("No se pudo guardar. Revisa el espacio del navegador."); }
+  }, 220);
+}
+
+/* ============================================================
+   3. Utilidades
+   ============================================================ */
+
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+function hoyISO(){
+  var d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+var MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+function fechaCorta(iso){
+  var p = String(iso).split("-");
+  return Number(p[2]) + " " + MESES[Number(p[1])-1];
+}
+function fechaLarga(iso){
+  var p = String(iso).split("-");
+  return Number(p[2]) + " de " + ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][Number(p[1])-1];
+}
+function fechaAnio(iso){
+  var p = String(iso).split("-");
+  return Number(p[2]) + " " + MESES[Number(p[1])-1] + " " + p[0];
+}
+// Fechas como texto plano: nada de husos horarios, se opera a mediodía UTC.
+function aDia(iso){
+  var p = String(iso).split("-");
+  return Date.UTC(Number(p[0]), Number(p[1])-1, Number(p[2]), 12);
+}
+function sumarDias(iso, n){
+  var d = new Date(aDia(iso) + n*86400000);
+  return d.getUTCFullYear() + "-" + String(d.getUTCMonth()+1).padStart(2,"0") + "-" + String(d.getUTCDate()).padStart(2,"0");
+}
+function diasEntre(a, b){ return Math.round((aDia(b) - aDia(a)) / 86400000); }
+
+function num(n){
+  if(!isFinite(n)) return "0";
+  var r = Math.round(n*10)/10;
+  return r.toLocaleString("es-CL", {maximumFractionDigits:1});
+}
+function kg(n){
+  return (Math.round((n||0)*100)/100).toLocaleString("es-CL", {maximumFractionDigits:2});
+}
+// Los kilos se escriben con coma («6,2»): se aceptan las dos formas.
+function leerNum(v){
+  var n = parseFloat(String(v == null ? "" : v).replace(",", ".").replace(/[^\d.]/g, ""));
+  return isFinite(n) ? n : 0;
+}
+function clp(n){
+  return "$" + Math.round(n||0).toLocaleString("es-CL", {maximumFractionDigits:0});
+}
+function redondear(n, uni){
+  if(ENTERAS[uni]) return Math.ceil(n);
+  return Math.round(n*10)/10;
+}
+function paso(uni){ return PASOS[uni] || 1; }
+
+var toastT;
+function avisar(msg){
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(function(){ t.classList.remove("show"); }, 2600);
+}
+
+function activos(){ return DB.items.filter(function(i){ return !i.off; }); }
+function porId(id){ return DB.items.filter(function(i){ return i.id === id; })[0]; }
+function etapaDe(k){ return ETAPAS.filter(function(e){ return e.k === k; })[0] || ETAPAS[5]; }
+
+/* ============================================================
+   4. Semanas: borrador abierto + historial cerrado
+   ============================================================ */
+
+function cerradas(){ return DB.semanas.filter(function(s){ return s.cerrada; }); }
+
+function borrador(crear){
+  var u = DB.semanas[DB.semanas.length-1];
+  if(u && !u.cerrada) return u;
+  if(crear === false) return null;
+  var nueva = {f:hoyISO(), v:{}, c:{}, r:{}, cerrada:false};
+  DB.semanas.push(nueva);
+  return nueva;
+}
+
+// Último valor conocido de un insumo: primero el borrador, si no la última cerrada.
+function ultimoCerrado(id){
+  var c = cerradas();
+  for(var i=c.length-1; i>=0; i--){
+    if(c[i].v[id] != null) return c[i].v[id];
+  }
+  return 0;
+}
+function stock(id){
+  var b = borrador(false);
+  if(b && b.v[id] != null) return b.v[id];
+  return ultimoCerrado(id);
+}
+
+// Serie de consumo semanal: consumo = stock anterior + compras − stock actual.
+function serie(id){
+  var c = cerradas(), out = [], prev = null;
+  for(var i=0; i<c.length; i++){
+    var s = c[i], val = s.v[id] != null ? s.v[id] : prev;
+    if(val == null) continue;
+    var comp = s.c[id] || 0, cons = null;
+    if(prev != null){
+      // Si subió el stock sin registrar compra, asumimos compra no anotada (consumo 0).
+      cons = Math.max(0, prev + comp - val);
+    }
+    out.push({f:s.f, stock:val, compras:comp, consumo:cons});
+    prev = val;
+  }
+  return out;
+}
+
+function consumoProm(id){
+  var s = serie(id).filter(function(x){ return x.consumo != null; });
+  if(!s.length) return null;
+  var ult = s.slice(-6), suma = 0;
+  for(var i=0;i<ult.length;i++) suma += ult[i].consumo;
+  return suma / ult.length;
+}
+
+function cobertura(id){
+  var cp = consumoProm(id);
+  if(cp == null || cp <= 0) return null;
+  return stock(id) / cp;
+}
+
+// Un insumo que nunca se contó no tiene estado: no es que falte, es que no se sabe.
+function sinDatos(id){
+  var b = borrador(false);
+  if(b && b.r[id]) return false;
+  var c = cerradas();
+  for(var i=0; i<c.length; i++){ if(c[i].v[id] != null) return false; }
+  return true;
+}
+
+// nuevo · vivo · ok · atención · crítico
+function estado(it){
+  if(sinDatos(it.id)) return "nuevo";
+  if(it.tipo === "v") return "vivo";
+  var s = stock(it.id), cob = cobertura(it.id);
+  if(it.min > 0 && s <= it.min) return "crit";
+  if(cob != null && cob < 1) return "crit";
+  if(it.min > 0 && s <= it.min * 1.6) return "warn";
+  if(cob != null && cob < 2.5) return "warn";
+  return "ok";
+}
+
+function sugerencia(it){
+  var s = stock(it.id), cp = consumoProm(it.id) || 0;
+  var objetivo = Math.max(it.min * 2, cp * 4);
+  var falta = objetivo - s;
+  return falta > 0 ? redondear(falta, it.uni) : 0;
+}
+
+function porComprar(){
+  return activos()
+    .filter(function(i){ return i.tipo !== "v"; })
+    .map(function(i){ return {it:i, est:estado(i), sug:sugerencia(i)}; })
+    .filter(function(x){ return (x.est === "crit" || x.est === "warn") && x.sug > 0; })
+    .sort(function(a,b){
+      if(a.est !== b.est) return a.est === "crit" ? -1 : 1;
+      return a.it.et.localeCompare(b.it.et);
+    });
+}
+
+function valorInventario(){
+  var total = 0, sinCosto = 0;
+  activos().forEach(function(i){
+    if(i.tipo === "v") return;
+    if(!i.costo) sinCosto++;
+    total += stock(i.id) * (i.costo || 0);
+  });
+  return {total:total, sinCosto:sinCosto};
+}
+
+/* ============================================================
+   5. Pantalla: Conteo
+   ============================================================ */
+
+var ICO_CHECK = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>';
+
+function pintarConteo(){
+  var b = borrador(), html = "";
+
+  ETAPAS.forEach(function(et){
+    var items = activos().filter(function(i){ return i.et === et.k; });
+    if(!items.length) return;
+    var listos = items.filter(function(i){ return b.r[i.id]; }).length;
+    var abierta = !!abiertas[et.k];
+
+    html += '<section class="stage' + (abierta ? " open" : "") + '" data-et="' + esc(et.k) + '">';
+    html += '<button class="stage__head" data-toggle="' + esc(et.k) + '" aria-expanded="' + abierta + '">';
+    html += '<span class="stage__n">' + (et.k === "c" ? "＋" : esc(et.k)) + '</span>';
+    html += '<span class="stage__txt"><span class="stage__t">' + esc(et.n) + '</span>';
+    html += '<span class="stage__d">' + esc(et.d) + '</span></span>';
+    html += '<span class="stage__c">' + listos + "/" + items.length;
+    html += '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
+    html += "</button>";
+
+    html += '<div class="stage__body">';
+    html += '<div class="samebar"><button class="btn-same" data-same="' + esc(et.k) + '">';
+    html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>';
+    html += "Todo igual que la semana pasada</button></div>";
+
+    items.forEach(function(it){ html += filaHTML(it, b); });
+    html += "</div></section>";
+  });
+
+  html += '<div style="margin-top:16px"><button class="btn btn--primary" id="btnCerrar">';
+  html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>';
+  html += "Cerrar el conteo de esta semana</button></div>";
+  html += '<p class="note">Al cerrar, el conteo queda guardado con fecha y sirve para calcular el consumo semanal. Mientras no lo cierres, puedes seguir corrigiendo números.</p>';
+
+  document.getElementById("tab-conteo").innerHTML = html;
+  actualizarProgreso();
+}
+
+// Chip de estado de una fila. Sin datos → sin chip: el punto ámbar del nombre ya dice "falta contar".
+function chipHTML(it){
+  var est = estado(it), cob = cobertura(it.id);
+  if(est === "nuevo") return "";
+  if(est === "vivo")  return '<span class="pill pill--vivo">stock vivo</span>';
+  if(est === "crit")  return '<span class="pill pill--crit"><i class="dot"></i>hay que comprar</span>';
+  if(est === "warn")  return '<span class="pill pill--warn"><i class="dot"></i>se está acabando</span>';
+  if(cob != null)     return '<span class="pill pill--ok"><i class="dot"></i>' + num(cob) + " sem</span>";
+  return "";
+}
+
+function metaHTML(it){
+  return "<span>" + esc(it.uni) + (it.min > 0 ? " · mín " + num(it.min) : "") + "</span>" + chipHTML(it);
+}
+
+function filaHTML(it, b){
+  var val = b.v[it.id] != null ? b.v[it.id] : ultimoCerrado(it.id);
+  var rev = !!b.r[it.id];
+
+  var h = '<div class="row ' + (rev ? "done" : "pend") + '" data-id="' + it.id + '">';
+  h += '<div class="row__top">';
+  h += '<button class="row__tap" data-open="' + it.id + '" aria-label="Ver detalle de ' + esc(it.nom) + '">';
+  h += '<span class="row__nom">' + esc(it.nom) + "</span>";
+  h += '<span class="row__meta">' + metaHTML(it) + "</span></button>";
+  h += '<div class="stepper">';
+  h += '<button data-d="-1" data-id="' + it.id + '" aria-label="Restar">−</button>';
+  h += '<input type="number" inputmode="decimal" step="any" min="0" value="' + val + '" data-in="' + it.id + '" aria-label="Cantidad de ' + esc(it.nom) + '">';
+  h += '<button data-d="1" data-id="' + it.id + '" aria-label="Sumar">+</button>';
+  h += "</div></div>";
+  h += '<div class="det" data-det="' + it.id + '"></div>';
+  h += "</div>";
+  return h;
+}
+
+function pintarDetalle(id){
+  var it = porId(id), b = borrador();
+  var caja = document.querySelector('[data-det="' + id + '"]');
+  if(!caja || !it) return;
+
+  var cp = consumoProm(id), cob = cobertura(id), s = serie(id);
+
+  var h = '<div class="det__box"><div class="det__grid">';
+  h += '<div><div class="det__k">Consumo</div><div class="det__v">' + (cp == null ? "—" : num(cp)) + '</div><div class="det__k" style="text-transform:none;letter-spacing:0">' + esc(it.uni) + "/sem</div></div>";
+  h += '<div><div class="det__k">Cobertura</div><div class="det__v">' + (cob == null ? "—" : num(cob)) + '</div><div class="det__k" style="text-transform:none;letter-spacing:0">semanas</div></div>';
+  h += '<div><div class="det__k">Valor</div><div class="det__v">' + (it.costo ? clp(stock(id)*it.costo) : "—") + '</div><div class="det__k" style="text-transform:none;letter-spacing:0">' + (it.costo ? clp(it.costo) + "/" + esc(it.uni) : "sin costo") + "</div></div>";
+  h += "</div>";
+
+  h += '<div class="det__row"><label for="c_' + id + '">¿Compraste esta semana?</label>';
+  h += '<input class="mini" id="c_' + id + '" type="number" inputmode="decimal" step="any" min="0" value="' + (b.c[id] || 0) + '" data-compra="' + id + '"></div>';
+
+  if(s.length >= 2) h += chispa(s);
+
+  h += '<button class="linkbtn" data-edit="' + id + '">Editar este insumo</button>';
+  h += "</div>";
+  caja.innerHTML = h;
+}
+
+// Mini gráfico de la evolución del stock (últimas 10 semanas cerradas)
+function chispa(s){
+  var d = s.slice(-10).map(function(x){ return x.stock; });
+  if(d.length < 2) return "";
+  var max = Math.max.apply(null, d), min = Math.min.apply(null, d);
+  var rango = (max - min) || 1, W = 260, H = 30;
+  var pts = d.map(function(v,i){
+    var x = (i/(d.length-1))*W;
+    var y = H - ((v-min)/rango)*H;
+    return x.toFixed(1) + "," + y.toFixed(1);
+  });
+  var area = "0," + H + " " + pts.join(" ") + " " + W + "," + H;
+  var ux = W, uy = H - ((d[d.length-1]-min)/rango)*H;
+  return '<svg class="spark" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" aria-hidden="true">' +
+    '<polygon points="' + area + '" fill="var(--moss)" opacity=".14"/>' +
+    '<polyline points="' + pts.join(" ") + '" fill="none" stroke="var(--moss)" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>' +
+    '<circle cx="' + ux.toFixed(1) + '" cy="' + uy.toFixed(1) + '" r="2.6" fill="var(--moss)" vector-effect="non-scaling-stroke"/></svg>';
+}
+
+function actualizarProgreso(){
+  var b = borrador(), tot = activos().length;
+  var listos = activos().filter(function(i){ return b.r[i.id]; }).length;
+  document.getElementById("progFill").style.width = (tot ? (listos/tot)*100 : 0) + "%";
+  document.getElementById("progTxt").innerHTML = "<b>" + listos + "</b> de " + tot + " revisados";
+  document.getElementById("progWeek").textContent = "Semana del " + fechaCorta(b.f);
+
+  var n = porComprar().length, badge = document.getElementById("tabBadge");
+  badge.hidden = n === 0;
+  badge.textContent = n > 9 ? "9+" : n;
+}
+
+function marcar(id, valor){
+  var b = borrador(), it = porId(id);
+  if(!it) return;
+  b.v[id] = valor;
+  b.r[id] = true;
+  guardar();
+  var fila = document.querySelector('.row[data-id="' + id + '"]');
+  if(fila){ fila.classList.add("done"); fila.classList.remove("pend"); }
+  refrescarFila(id);
+  actualizarProgreso();
+  actualizarContadorEtapa(it.et);
+}
+
+function refrescarFila(id){
+  var it = porId(id), fila = document.querySelector('.row[data-id="' + id + '"]');
+  if(!it || !fila) return;
+  fila.querySelector(".row__meta").innerHTML = metaHTML(it);
+  if(fila.classList.contains("open")) pintarDetalle(id);
+}
+
+function actualizarContadorEtapa(etk){
+  var b = borrador();
+  var items = activos().filter(function(i){ return i.et === etk; });
+  var listos = items.filter(function(i){ return b.r[i.id]; }).length;
+  var cont = document.querySelector('.stage[data-et="' + etk + '"] .stage__c');
+  if(cont) cont.childNodes[0].nodeValue = listos + "/" + items.length;
+}
+
+/* ============================================================
+   6. Pantalla: Resumen
+   ============================================================ */
+
+// Bloque de producción del resumen: el pulso de los lotes, antes del inventario.
+function bloqueProduccion(){
+  var act = lotesActivos(), prox = proximos(7), hoy = hoyISO();
+  var bolsas = 0;
+  act.forEach(function(l){ bolsas += bolsasVivas(l); });
+  var incu = lotesEn("incu"), fruc = lotesEn("fruc");
+  function bolsasDe(ls){ var t = 0; ls.forEach(function(l){ t += bolsasVivas(l); }); return t; }
+
+  var h = '<div class="igroup__t">Producción</div>';
+  h += '<div class="tiles" style="margin-top:0">';
+  h += '<div class="tile"><div class="tile__k">Lotes activos</div><div class="tile__v">' + act.length + '</div>';
+  h += '<div class="tile__s">' + (act.length ? bolsas + " bolsas en producción" : "ningún lote en curso") + "</div></div>";
+  h += '<div class="tile"><div class="tile__k">En incubación</div><div class="tile__v">' + incu.length + '</div>';
+  h += '<div class="tile__s">' + bolsasDe(incu) + " bolsas colonizando</div></div>";
+  h += '<div class="tile"><div class="tile__k">En fructificación</div><div class="tile__v">' + fruc.length + '</div>';
+  h += '<div class="tile__s">' + bolsasDe(fruc) + " bolsas en cámara</div></div>";
+  h += '<div class="tile"><div class="tile__k">Cosechado</div><div class="tile__v">' + kg(producido(30)) + '</div>';
+  h += '<div class="tile__s">kg en 30 días · ' + kg(producido(0)) + " kg histórico</div></div>";
+  h += "</div>";
+
+  if(prox.length){
+    var vencidos = prox.filter(function(x){ return x.e.f <= hoy; }).length;
+    h += '<div class="card"><div class="card__head"><h2 class="card__t">Próximos a cosecha</h2>';
+    h += '<span class="card__n">' + (vencidos ? vencidos + " ya en punto" : prox.length + " en 7 días") + "</span></div>";
+    prox.slice(0,6).forEach(function(x){
+      var d = diasEntre(hoy, x.e.f);
+      h += '<button class="buy" data-lote="' + esc(x.l.id) + '">';
+      h += '<span class="est est--' + x.l.est + '">' + esc(estDe(x.l.est).n) + "</span>";
+      h += '<span class="buy__t"><span class="buy__n">' + esc(nomLote(x.l)) + "</span>";
+      h += '<span class="buy__m">' + esc(x.l.cod) + " · " + bolsasVivas(x.l) + " bolsas</span></span>";
+      h += '<span class="buy__q' + (d <= 0 ? " tarde" : "") + '" style="font-size:.82rem">' + (d < 0 ? "hace " + (-d) + "d" : d === 0 ? "hoy" : "en " + d + "d");
+      h += "<small>" + esc(x.e.txt) + "</small></span></button>";
+    });
+    h += "</div>";
+  }
+
+  var pe = porEspecie(90);
+  if(pe.filas.length){
+    h += '<div class="card"><div class="card__head"><h2 class="card__t">Producción por hongo</h2>';
+    h += '<span class="card__n">últimos 90 días</span></div><div class="card__body"><div class="bars">';
+    pe.filas.forEach(function(f){
+      h += '<div><div class="bar__l"><span>' + esc(f.n) + "</span><span>" + kg(f.v) + " kg</span></div>";
+      h += '<div class="bar__t"><div class="bar__f" style="width:' + ((f.v/pe.max)*100).toFixed(1) + '%"></div></div></div>';
+    });
+    h += "</div></div></div>";
+  }
+  return h;
+}
+
+function pintarResumen(){
+  var val = valorInventario(), lista = porComprar(), crit = lista.filter(function(x){ return x.est === "crit"; });
+  var cs = cerradas();
+
+  var peor = null;
+  activos().forEach(function(i){
+    if(i.tipo === "v") return;
+    var c = cobertura(i.id);
+    if(c == null) return;
+    if(!peor || c < peor.c) peor = {c:c, it:i};
+  });
+
+  var h = bloqueProduccion();
+  h += '<div class="igroup__t">Inventario</div>';
+  h += '<div class="tiles" style="margin-top:0">';
+  h += '<div class="tile"><div class="tile__k">Valor del inventario</div><div class="tile__v">' + clp(val.total) + "</div>";
+  h += '<div class="tile__s">' + (val.sinCosto ? val.sinCosto + " insumos sin costo cargado" : "todos los costos cargados") + "</div></div>";
+
+  h += '<div class="tile' + (crit.length ? " tile--crit" : "") + '"><div class="tile__k">Hay que comprar</div><div class="tile__v">' + lista.length + "</div>";
+  h += '<div class="tile__s">' + (crit.length ? crit.length + " urgentes" : "nada urgente") + "</div></div>";
+
+  h += '<div class="tile' + (peor && peor.c < 2 ? " tile--warn" : "") + '"><div class="tile__k">Cobertura más corta</div><div class="tile__v">' + (peor ? num(peor.c) : "—") + "</div>";
+  h += '<div class="tile__s">' + (peor ? esc(peor.it.nom) : "necesitas 2 conteos cerrados") + "</div></div>";
+
+  h += '<div class="tile"><div class="tile__k">Conteos cerrados</div><div class="tile__v">' + cs.length + "</div>";
+  h += '<div class="tile__s">' + (cs.length ? "último: " + fechaCorta(cs[cs.length-1].f) : "aún ninguno") + "</div></div>";
+  h += "</div>";
+
+  // Lista de compra
+  h += '<div class="card"><div class="card__head"><h2 class="card__t">Lista de compra</h2>';
+  h += '<span class="card__n">' + lista.length + " ítems</span></div>";
+  if(!lista.length){
+    h += '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><br>No falta nada.<br>Cierra conteos cada semana y aquí aparecerá qué reponer antes de quedarte sin stock.</div>';
+  } else {
+    lista.forEach(function(x){
+      var et = etapaDe(x.it.et);
+      h += '<div class="buy"><span class="pill pill--' + x.est + '"><i class="dot"></i></span>';
+      h += '<div class="buy__t"><div class="buy__n">' + esc(x.it.nom) + "</div>";
+      h += '<div class="buy__m">' + esc(et.n) + " · quedan " + num(stock(x.it.id)) + " " + esc(x.it.uni) + "</div></div>";
+      h += '<div class="buy__q">' + num(x.sug);
+      h += "<small>" + esc(x.it.uni) + (x.it.costo ? " · " + clp(x.sug * x.it.costo) : "") + "</small></div></div>";
+    });
+    h += '<div class="card__body" style="padding-top:13px"><div class="btnrow">';
+    h += '<button class="btn btn--ghost" id="btnCopiar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar lista</button>';
+    h += '<button class="btn btn--ghost" id="btnCsvCompra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Descargar</button>';
+    h += "</div></div>";
+  }
+  h += "</div>";
+
+  // Consumo por etapa
+  var gasto = gastoPorEtapa();
+  if(gasto.total > 0){
+    h += '<div class="card"><div class="card__head"><h2 class="card__t">En qué se te va la plata</h2>';
+    h += '<span class="card__n">últimas 4 semanas</span></div><div class="card__body"><div class="bars">';
+    gasto.filas.forEach(function(f){
+      h += '<div><div class="bar__l"><span>' + esc(f.n) + "</span><span>" + clp(f.v) + "</span></div>";
+      h += '<div class="bar__t"><div class="bar__f" style="width:' + ((f.v/gasto.max)*100).toFixed(1) + '%"></div></div></div>';
+    });
+    h += "</div></div></div>";
+  }
+
+  // Historial
+  if(cs.length){
+    h += '<div class="card"><div class="card__head"><h2 class="card__t">Historial</h2>';
+    h += '<span class="card__n">' + cs.length + " conteos</span></div>";
+    h += '<div class="card__body"><div class="tablescroll"><table class="hist"><thead><tr><th>Fecha</th><th>Revisados</th><th>Valor</th></tr></thead><tbody>';
+    cs.slice(-10).reverse().forEach(function(s){
+      var v = 0;
+      DB.items.forEach(function(i){ if(i.tipo !== "v" && s.v[i.id] != null) v += s.v[i.id] * (i.costo || 0); });
+      h += "<tr><td>" + fechaCorta(s.f) + "</td><td>" + Object.keys(s.v).length + "</td><td>" + clp(v) + "</td></tr>";
+    });
+    h += "</tbody></table></div></div></div>";
+  }
+
+  document.getElementById("tab-resumen").innerHTML = h;
+}
+
+function gastoPorEtapa(){
+  var acum = {}, max = 0, total = 0;
+  activos().forEach(function(i){
+    if(i.tipo === "v" || !i.costo) return;
+    var s = serie(i.id).filter(function(x){ return x.consumo != null; }).slice(-4);
+    var suma = 0;
+    for(var k=0;k<s.length;k++) suma += s[k].consumo;
+    var v = suma * i.costo;
+    if(v <= 0) return;
+    acum[i.et] = (acum[i.et] || 0) + v;
+  });
+  var filas = ETAPAS.filter(function(e){ return acum[e.k]; })
+    .map(function(e){ return {n:e.n, v:acum[e.k]}; })
+    .sort(function(a,b){ return b.v - a.v; });
+  filas.forEach(function(f){ total += f.v; if(f.v > max) max = f.v; });
+  return {filas:filas, max:max || 1, total:total};
+}
+
+/* ============================================================
+   7. Pantalla: Insumos
+   ============================================================ */
+
+function pintarInsumos(){
+  var q = filtro.trim().toLowerCase();
+  var h = '<input class="search" id="buscar" type="search" placeholder="Buscar insumo…" value="' + esc(filtro) + '" aria-label="Buscar insumo">';
+  h += '<div class="ilist">';
+  var hubo = false;
+
+  ETAPAS.forEach(function(et){
+    var items = DB.items.filter(function(i){
+      return i.et === et.k && (!q || i.nom.toLowerCase().indexOf(q) >= 0);
+    });
+    if(!items.length) return;
+    hubo = true;
+    h += '<div class="igroup__t">' + (et.k === "c" ? "" : et.k + " · ") + esc(et.n) + "</div>";
+    items.forEach(function(i){
+      h += '<button class="irow' + (i.off ? " off" : "") + '" data-edit="' + i.id + '">';
+      h += '<span class="irow__t"><span class="irow__n">' + esc(i.nom) + (i.off ? " · pausado" : "") + "</span>";
+      h += '<span class="irow__m">' + num(stock(i.id)) + " " + esc(i.uni) + " · mín " + num(i.min) + (i.costo ? " · " + clp(i.costo) : "") + "</span></span>";
+      h += '<svg class="irow__go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>';
+    });
+  });
+
+  if(!hubo) h += '<div class="empty">No hay insumos que coincidan con «' + esc(filtro) + "».</div>";
+  h += "</div>";
+
+  h += '<div style="margin-top:16px"><button class="btn btn--primary" data-edit="nuevo">';
+  h += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Agregar insumo</button></div>';
+  h += '<p class="note">El costo unitario es opcional, pero si lo cargas la app valoriza el inventario en pesos y te muestra en qué etapa se te va la plata. Un insumo <em>pausado</em> deja de aparecer en el conteo sin perder su historial.</p>';
+
+  document.getElementById("tab-insumos").innerHTML = h;
+}
+
+/* ============================================================
+   8. Lotes: datos y cálculos
+   ============================================================ */
+
+function espDe(k){ return ESPECIES.filter(function(e){ return e.k === k; })[0] || ESPECIES[ESPECIES.length-1]; }
+function estDe(k){ return ESTADOS.filter(function(e){ return e.k === k; })[0] || ESTADOS[0]; }
+function lotePorId(id){ return DB.lotes.filter(function(l){ return l.id === id; })[0]; }
+function lotePorCod(c){
+  c = String(c || "").toUpperCase();
+  return DB.lotes.filter(function(l){ return String(l.cod).toUpperCase() === c; })[0];
+}
+function nomLote(l){ return l.esp === "OTR" ? (l.otro || "Sin especificar") : espDe(l.esp).n; }
+function sciLote(l){ return l.esp === "OTR" ? "" : espDe(l.esp).c; }
+
+// El código se arma con la sigla de la especie, el año y mes de inoculación y un
+// correlativo. Se puede editar a mano; lo único obligatorio es que no se repita.
+function limpiarCod(c){
+  return String(c || "").toUpperCase().replace(/\s+/g,"-").replace(/[^A-Z0-9\-_.]/g,"").slice(0,24);
+}
+function siglaDe(esp, otro){
+  if(esp !== "OTR") return esp;
+  var s = limpiarCod(otro).replace(/[^A-Z0-9]/g,"").slice(0,3);
+  return s.length >= 2 ? s : "OTR";
+}
+function nuevoCodigo(esp, fecha, otro, ignorar){
+  var p = String(fecha || hoyISO()).split("-");
+  var raiz = siglaDe(esp, otro) + "-" + p[0].slice(2) + p[1] + "-";
+  var max = 0;
+  DB.lotes.forEach(function(l){
+    if(l.id === ignorar) return;
+    var m = String(l.cod).toUpperCase().indexOf(raiz) === 0 ? String(l.cod).slice(raiz.length) : null;
+    if(m != null && /^\d+$/.test(m)) max = Math.max(max, Number(m));
+  });
+  return raiz + String(max+1).padStart(2,"0");
+}
+function codLibre(cod, ignorar){
+  var otro = lotePorCod(cod);
+  return !otro || otro.id === ignorar;
+}
+
+// Eventos en orden cronológico; el índice desempata cuando comparten fecha.
+function evsOrden(l){
+  return l.ev.map(function(e,i){ return {e:e, i:i}; })
+    .sort(function(a,b){ return a.e.f === b.e.f ? a.i - b.i : (a.e.f < b.e.f ? -1 : 1); })
+    .map(function(x){ return x.e; });
+}
+function cosechas(l){ return evsOrden(l).filter(function(e){ return e.t === "cos"; }); }
+function kgLote(l){
+  var t = 0;
+  l.ev.forEach(function(e){ if(e.t === "cos") t += Number(e.kg) || 0; });
+  return t;
+}
+function descartadas(l){
+  var t = 0;
+  l.ev.forEach(function(e){ if(e.t === "cont") t += Number(e.n) || 0; });
+  return t;
+}
+function bolsasVivas(l){ return Math.max(0, (Number(l.bolsas)||0) - descartadas(l)); }
+
+// Rendimiento por bolsa en gramos: lo que importa al comparar lotes entre sí.
+function rendBolsa(l){
+  var b = bolsasVivas(l), k = kgLote(l);
+  if(!b || !k) return null;
+  return (k / b) * 1000;
+}
+// Rendimiento sobre el sustrato (fresco/húmedo), solo si se cargó el peso por bolsa.
+function rendPct(l){
+  var b = bolsasVivas(l), p = Number(l.peso) || 0, k = kgLote(l);
+  if(!b || !p || !k) return null;
+  return (k / (b*p)) * 100;
+}
+function fechaDeEstado(l, k){
+  var e = evsOrden(l).filter(function(x){ return x.t === "est" && x.a === k; })[0];
+  return e ? e.f : null;
+}
+function fotosDe(l){
+  var out = [];
+  evsOrden(l).forEach(function(e){
+    (e.fotos || []).forEach(function(f){ out.push({id:f, ev:e}); });
+  });
+  return out.reverse();
+}
+
+// Estimación de cuándo toca cosechar. Son días típicos por especie, no una promesa.
+function estimado(l){
+  if(CERRADOS[l.est] || l.est === "prep") return null;
+  var e = espDe(l.esp), cs = cosechas(l);
+  if(l.est === "cose"){
+    if(!cs.length) return null;
+    return {f:sumarDias(cs[cs.length-1].f, 14), txt:"próxima oleada"};
+  }
+  var ff = fechaDeEstado(l, "fruc");
+  if(ff) return {f:sumarDias(ff, e.fru), txt:"primera cosecha"};
+  if(!l.finoc) return null;
+  return {f:sumarDias(l.finoc, e.inc + e.fru), txt:"primera cosecha"};
+}
+
+function lotesActivos(){ return DB.lotes.filter(function(l){ return !CERRADOS[l.est]; }); }
+function lotesEn(k){ return DB.lotes.filter(function(l){ return l.est === k; }); }
+
+function proximos(dias){
+  var lim = sumarDias(hoyISO(), dias == null ? 7 : dias);
+  return lotesActivos().map(function(l){ return {l:l, e:estimado(l)}; })
+    .filter(function(x){ return x.e && x.e.f <= lim; })
+    .sort(function(a,b){ return a.e.f < b.e.f ? -1 : 1; });
+}
+
+// Producción cosechada en una ventana de días (todas las cosechas de todos los lotes).
+function producido(dias){
+  var desde = dias ? sumarDias(hoyISO(), -dias) : null, t = 0;
+  DB.lotes.forEach(function(l){
+    l.ev.forEach(function(e){
+      if(e.t !== "cos") return;
+      if(desde && e.f < desde) return;
+      t += Number(e.kg) || 0;
+    });
+  });
+  return t;
+}
+function porEspecie(dias){
+  var desde = sumarDias(hoyISO(), -dias), acum = {}, max = 0, filas = [];
+  DB.lotes.forEach(function(l){
+    l.ev.forEach(function(e){
+      if(e.t !== "cos" || e.f < desde) return;
+      var n = nomLote(l);
+      acum[n] = (acum[n] || 0) + (Number(e.kg) || 0);
+    });
+  });
+  for(var n in acum) filas.push({n:n, v:acum[n]});
+  filas.sort(function(a,b){ return b.v - a.v; });
+  filas.forEach(function(f){ if(f.v > max) max = f.v; });
+  return {filas:filas, max:max || 1};
+}
+
+function ordenarLotes(f){
+  var l = DB.lotes.slice();
+  if(f === "act") l = l.filter(function(x){ return !CERRADOS[x.est]; });
+  else if(f !== "todos") l = l.filter(function(x){ return x.est === f; });
+  return l.sort(function(a,b){
+    var ca = CERRADOS[a.est] ? 1 : 0, cb = CERRADOS[b.est] ? 1 : 0;
+    if(ca !== cb) return ca - cb;
+    if(ca === 1) return (b.finoc || "") < (a.finoc || "") ? -1 : 1;
+    var ea = estimado(a), eb = estimado(b);
+    if(ea && eb && ea.f !== eb.f) return ea.f < eb.f ? -1 : 1;
+    if(ea && !eb) return -1;
+    if(!ea && eb) return 1;
+    return (a.finoc || "") < (b.finoc || "") ? 1 : -1;
+  });
+}
+
+function agregarEvento(l, ev){
+  ev.id = nuevoId();
+  if(!ev.f) ev.f = hoyISO();
+  if(!ev.fotos) ev.fotos = [];
+  l.ev.push(ev);
+  return ev;
+}
+
+// Cambiar de estado deja siempre rastro en el historial. Devuelve el evento
+// creado, o null si el lote ya estaba en ese estado.
+function ponerEstado(l, k, fecha, txt){
+  if(l.est === k && fechaDeEstado(l, k)) return null;
+  l.est = k;
+  return agregarEvento(l, {t:"est", a:k, f:fecha || hoyISO(), txt:txt || ""});
+}
+
+/* ============================================================
+   9. Lotes: lista y ficha
+   ============================================================ */
+
+var FILTROS = [
+  {k:"act",   n:"Activos"},
+  {k:"incu",  n:"Incubación"},
+  {k:"fruc",  n:"Fructificación"},
+  {k:"cose",  n:"Cosecha"},
+  {k:"todos", n:"Todos"}
+];
+
+function pintarLotes(){
+  var lista = ordenarLotes(filtroLotes), hoy = hoyISO();
+
+  var h = '<div class="chips">';
+  FILTROS.forEach(function(f){
+    var n = f.k === "act" ? lotesActivos().length : f.k === "todos" ? DB.lotes.length : lotesEn(f.k).length;
+    h += '<button class="chip' + (filtroLotes === f.k ? " on" : "") + '" data-flote="' + f.k + '">' + esc(f.n) + " " + n + "</button>";
+  });
+  h += "</div>";
+
+  h += '<div style="margin-top:10px"><button class="btn btn--primary" data-led="nuevo">';
+  h += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Nuevo lote</button></div>';
+
+  h += '<div style="margin-top:14px">';
+  if(!lista.length){
+    h += '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12.4 21.6a2 2 0 0 1-2.8 0l-7.2-7.2a2 2 0 0 1-.6-1.4V4.4A2 2 0 0 1 3.8 2.4h8.6a2 2 0 0 1 1.4.6l6.8 6.8a2 2 0 0 1 0 2.8Z"/><circle cx="7.3" cy="7.3" r="1.3"/></svg><br>' +
+         (DB.lotes.length ? "Ningún lote en este filtro." : "Todavía no hay lotes.<br>Crea el primero y la app le pondrá código y código QR.") + "</div>";
+  }
+  lista.forEach(function(l){
+    var e = estimado(l), k = kgLote(l), est = estDe(l.est);
+    h += '<button class="lote" data-lote="' + esc(l.id) + '">';
+    h += '<span class="lote__t"><span class="lote__cod">' + esc(l.cod) + "</span>";
+    h += '<span class="lote__nom">' + esc(nomLote(l)) + (l.cepa ? ' <span style="color:var(--ink-faint);font-weight:400">· ' + esc(l.cepa) + "</span>" : "") + "</span>";
+    h += '<span class="lote__m"><span class="est est--' + l.est + '">' + esc(est.n) + "</span>";
+    h += "<span>" + bolsasVivas(l) + " bolsas</span>";
+    if(l.finoc) h += "<span>día " + Math.max(0, diasEntre(l.finoc, hoy)) + "</span>";
+    if(e) h += '<span class="' + (e.f <= hoy ? "tarde" : "") + '">' + (e.f <= hoy ? "cosechar ya" : "≈ " + fechaCorta(e.f)) + "</span>";
+    h += "</span></span>";
+    h += '<span class="lote__r"><span class="lote__kg">' + (k ? kg(k) : "—") + "<small>kg</small></span></span>";
+    h += "</button>";
+  });
+  h += "</div>";
+
+  h += '<p class="note">Cada lote lleva su código QR. Imprime la etiqueta, pégala en las bolsas y al escanearla desde el teléfono se abre esta misma ficha para registrar la cosecha.</p>';
+
+  document.getElementById("tab-lotes").innerHTML = h;
+}
+
+var ICO_EV = {
+  est:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m10.5 8.5 3.5 3.5-3.5 3.5"/></svg>',
+  cos:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18l-1.7 10.2a2 2 0 0 1-2 1.8H6.7a2 2 0 0 1-2-1.8Z"/><path d="M8.5 9V6.5a3.5 3.5 0 0 1 7 0V9"/></svg>',
+  cont: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.9 18.1A2 2 0 0 0 3.6 21h16.8a2 2 0 0 0 1.7-2.9L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4.5M12 17.5h.01"/></svg>',
+  nota: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2Z"/></svg>',
+  foto: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3.2l1.8-2h6l1.8 2H20v11H4Z"/><circle cx="12" cy="13" r="3.2"/></svg>'
+};
+
+function tituloEvento(l, e){
+  if(e.t === "est")  return "Pasó a " + estDe(e.a).n;
+  if(e.t === "cos"){
+    var cs = cosechas(l), i = 0;
+    for(var k=0; k<cs.length; k++) if(cs[k].id === e.id) i = k+1;
+    return "Cosecha " + (i ? i + "ª oleada · " : "") + kg(e.kg) + " kg";
+  }
+  if(e.t === "cont") return "Descarte de " + (Number(e.n)||0) + " bolsas";
+  if(e.t === "nota") return "Observación";
+  return "Fotografía";
+}
+
+function pintarFicha(){
+  var l = lotePorId(loteAbierto);
+  if(!l){
+    document.getElementById("tab-ficha").innerHTML = '<div class="empty">Este lote ya no existe.</div>';
+    return;
+  }
+  var hoy = hoyISO(), e = estimado(l), k = kgLote(l), rb = rendBolsa(l), rp = rendPct(l);
+  var cs = cosechas(l), desc = descartadas(l);
+
+  var h = '<div class="ficha">';
+  h += '<div class="ficha__cod">' + esc(l.cod) + "</div>";
+  h += '<div class="ficha__nom">' + esc(nomLote(l)) + "</div>";
+  if(sciLote(l)) h += '<div class="ficha__sci">' + esc(sciLote(l)) + "</div>";
+  h += '<div class="ficha__meta"><span class="est est--' + l.est + '">' + esc(estDe(l.est).n) + "</span>";
+  if(l.cepa) h += "<span>cepa " + esc(l.cepa) + "</span>";
+  if(l.finoc) h += "<span>inoculado " + esc(fechaAnio(l.finoc)) + "</span>";
+  if(l.finoc) h += "<span>día " + Math.max(0, diasEntre(l.finoc, hoy)) + "</span>";
+  h += "</div>";
+  if(e){
+    var d = diasEntre(hoy, e.f);
+    h += '<div class="ficha__meta" style="margin-top:7px"><span class="' + (d < 0 ? "tarde" : "") + '">';
+    h += (d < 0 ? "⚑ " + e.txt + " estimada hace " + (-d) + " días" : d === 0 ? "⚑ " + e.txt + " estimada para hoy" : e.txt + " estimada en " + d + " días · " + fechaCorta(e.f));
+    h += "</span></div>";
+  }
+  h += "</div>";
+
+  h += '<div class="tiles">';
+  h += '<div class="tile"><div class="tile__k">Producción acumulada</div><div class="tile__v">' + kg(k) + '</div><div class="tile__s">kg en ' + cs.length + (cs.length === 1 ? " oleada" : " oleadas") + "</div></div>";
+  h += '<div class="tile"><div class="tile__k">Rendimiento</div><div class="tile__v">' + (rb == null ? "—" : Math.round(rb)) + '</div><div class="tile__s">' + (rb == null ? "falta cosechar" : "gramos por bolsa") + "</div></div>";
+  h += '<div class="tile"><div class="tile__k">Bolsas</div><div class="tile__v">' + bolsasVivas(l) + '</div><div class="tile__s">' + (desc ? desc + " descartadas de " + (Number(l.bolsas)||0) : "sin descartes") + "</div></div>";
+  var pieRp = rp != null ? "fresco sobre " + num(bolsasVivas(l)*l.peso) + " kg"
+            : !l.peso ? "carga el peso por bolsa" : "falta cosechar";
+  h += '<div class="tile' + (rp != null && rp < 10 ? " tile--warn" : "") + '"><div class="tile__k">Sobre sustrato</div><div class="tile__v">' + (rp == null ? "—" : num(rp) + "%") + '</div><div class="tile__s">' + pieRp + "</div></div>";
+  h += "</div>";
+
+  h += '<div class="acts">';
+  h += '<button class="btn btn--primary full" data-lact="cos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18l-1.7 10.2a2 2 0 0 1-2 1.8H6.7a2 2 0 0 1-2-1.8Z"/><path d="M8.5 9V6.5a3.5 3.5 0 0 1 7 0V9"/></svg>Registrar cosecha</button>';
+  h += '<button class="btn btn--ghost" data-lact="est"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m10.5 8.5 3.5 3.5-3.5 3.5"/></svg>Cambiar estado</button>';
+  h += '<button class="btn btn--ghost" data-lact="etiq"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14h1M17 20h4M14 20h.01"/></svg>Etiqueta y QR</button>';
+  h += '<button class="btn btn--ghost" data-lact="foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3.2l1.8-2h6l1.8 2H20v11H4Z"/><circle cx="12" cy="13" r="3.2"/></svg>Foto</button>';
+  h += '<button class="btn btn--ghost" data-lact="nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2Z"/></svg>Observación</button>';
+  h += '<button class="btn btn--danger full" data-lact="cont"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.9 18.1A2 2 0 0 0 3.6 21h16.8a2 2 0 0 0 1.7-2.9L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4.5M12 17.5h.01"/></svg>Contaminación o descarte</button>';
+  h += "</div>";
+
+  if(l.obs){
+    h += '<div class="card"><div class="card__head"><h2 class="card__t">Observaciones</h2></div>';
+    h += '<div class="card__body" style="font-size:.88rem;color:var(--ink-soft);line-height:1.6;white-space:pre-wrap">' + esc(l.obs) + "</div></div>";
+  }
+
+  var fotos = fotosDe(l);
+  if(fotos.length){
+    h += '<div class="card"><div class="card__head"><h2 class="card__t">Fotografías</h2><span class="card__n">' + fotos.length + "</span></div>";
+    h += '<div class="card__body"><div class="gal">';
+    fotos.forEach(function(f){
+      h += '<button data-ver="' + esc(f.id) + '"><img data-foto="' + esc(f.id) + '" alt="Fotografía del lote"></button>';
+    });
+    h += "</div></div></div>";
+  }
+
+  h += '<div class="card"><div class="card__head"><h2 class="card__t">Historial</h2><span class="card__n">' + l.ev.length + " eventos</span></div>";
+  h += '<div class="card__body">';
+  if(!l.ev.length){
+    h += '<div class="empty">Todavía sin movimientos.</div>';
+  } else {
+    evsOrden(l).reverse().forEach(function(ev){
+      h += '<button class="ev ev--' + ev.t + '" data-lev="' + esc(ev.id) + '">';
+      h += '<span class="ev__i">' + ICO_EV[ev.t] + "</span>";
+      h += '<span class="ev__b"><span class="ev__t">' + esc(tituloEvento(l, ev)) + "</span>";
+      h += '<span class="ev__d">' + esc(fechaAnio(ev.f)) + "</span>";
+      if(ev.txt) h += '<span class="ev__x">' + esc(ev.txt) + "</span>";
+      if((ev.fotos || []).length){
+        h += '<span class="evgal">';
+        ev.fotos.forEach(function(f){ h += '<img data-foto="' + esc(f) + '" alt="">'; });
+        h += "</span>";
+      }
+      h += "</span></button>";
+    });
+  }
+  h += "</div></div>";
+
+  h += '<div class="btnrow" style="margin-top:14px">';
+  h += '<button class="btn btn--ghost" data-led="' + esc(l.id) + '">Editar lote</button>';
+  h += '<button class="btn btn--danger" data-lborrar="' + esc(l.id) + '">Eliminar lote</button></div>';
+  h += '<p class="note">Toca cualquier evento del historial para corregirlo o eliminarlo.</p>';
+
+  document.getElementById("tab-ficha").innerHTML = h;
+  cargarFotos(document.getElementById("tab-ficha"));
+}
+
+function abrirLote(id, sinHash){
+  var l = lotePorId(id);
+  if(!l) return;
+  loteAbierto = id;
+  if(!sinHash){
+    var nuevo = "#/l/" + encodeURIComponent(l.cod);
+    if(location.hash !== nuevo) location.hash = nuevo;
+  }
+  irA("ficha");
+}
+
+/* ============================================================
+   10. Fotografías (IndexedDB, con respaldo en localStorage)
+   ============================================================ */
+
+var FOTOS = (function(){
+  var db = null, listo = false, cola = [];
+
+  function conectar(cb){
+    if(listo){ cb(db); return; }
+    cola.push(cb);
+    if(cola.length > 1) return;
+    var req;
+    try{ req = indexedDB.open("hds_fotos", 1); }
+    catch(err){ terminar(null); return; }
+    req.onupgradeneeded = function(){ try{ req.result.createObjectStore("f"); }catch(err){} };
+    req.onsuccess = function(){ terminar(req.result); };
+    req.onerror   = function(){ terminar(null); };
+    // Si el navegador bloquea IndexedDB (modo privado, archivo local), seguimos igual.
+    setTimeout(function(){ if(!listo) terminar(null); }, 2500);
+  }
+  function terminar(d){
+    db = d; listo = true;
+    var c = cola; cola = [];
+    c.forEach(function(f){ f(db); });
+  }
+  function almacen(modo){ return db.transaction("f", modo).objectStore("f"); }
+
+  function guardarF(id, dato, cb){
+    conectar(function(d){
+      if(!d){
+        try{ localStorage.setItem("hds_foto_" + id, dato); cb && cb(true); }
+        catch(err){ cb && cb(false); }
+        return;
+      }
+      try{
+        var r = almacen("readwrite").put(dato, id);
+        r.onsuccess = function(){ cb && cb(true); };
+        r.onerror   = function(){ cb && cb(false); };
+      }catch(err){ cb && cb(false); }
+    });
+  }
+  function leerF(id, cb){
+    conectar(function(d){
+      if(!d){ cb(localStorage.getItem("hds_foto_" + id)); return; }
+      try{
+        var r = almacen("readonly").get(id);
+        r.onsuccess = function(){ cb(r.result || null); };
+        r.onerror   = function(){ cb(null); };
+      }catch(err){ cb(null); }
+    });
+  }
+  function borrarF(id){
+    conectar(function(d){
+      if(!d){ try{ localStorage.removeItem("hds_foto_" + id); }catch(err){} return; }
+      try{ almacen("readwrite").delete(id); }catch(err){}
+    });
+  }
+  // Para el respaldo: devuelve {id: dataURL} leyendo de a una.
+  function varias(ids, cb){
+    var out = {}, i = 0;
+    (function paso(){
+      if(i >= ids.length){ cb(out); return; }
+      var id = ids[i++];
+      leerF(id, function(d){ if(d) out[id] = d; paso(); });
+    })();
+  }
+  function poner(obj, cb){
+    var ids = Object.keys(obj || {}), i = 0;
+    (function paso(){
+      if(i >= ids.length){ cb && cb(); return; }
+      var id = ids[i++];
+      guardarF(id, obj[id], paso);
+    })();
+  }
+  return {guardar:guardarF, leer:leerF, borrar:borrarF, varias:varias, poner:poner};
+})();
+
+// Las fotos se guardan reducidas: lo que importa es reconocer el lote, no el detalle.
+function comprimirFoto(archivo, cb){
+  var lector = new FileReader();
+  lector.onload = function(){
+    var img = new Image();
+    img.onload = function(){
+      var max = 1200, f = Math.min(1, max / Math.max(img.width, img.height));
+      var c = document.createElement("canvas");
+      c.width  = Math.max(1, Math.round(img.width * f));
+      c.height = Math.max(1, Math.round(img.height * f));
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      try{ cb(c.toDataURL("image/jpeg", 0.72)); }catch(err){ cb(null); }
+    };
+    img.onerror = function(){ cb(null); };
+    img.src = String(lector.result);
+  };
+  lector.onerror = function(){ cb(null); };
+  lector.readAsDataURL(archivo);
+}
+
+function pedirFotos(cb){
+  var inp = document.createElement("input");
+  inp.type = "file";
+  inp.accept = "image/*";
+  inp.multiple = true;
+  inp.onchange = function(){
+    var fs = Array.prototype.slice.call(inp.files || []), out = [], i = 0;
+    if(!fs.length) return;
+    avisar(fs.length > 1 ? "Preparando " + fs.length + " fotos…" : "Preparando la foto…");
+    (function paso(){
+      if(i >= fs.length){ cb(out); return; }
+      comprimirFoto(fs[i++], function(d){ if(d) out.push(d); paso(); });
+    })();
+  };
+  inp.click();
+}
+
+// Rellena las <img data-foto> que estén en pantalla.
+function cargarFotos(raiz){
+  Array.prototype.forEach.call((raiz || document).querySelectorAll("img[data-foto]"), function(img){
+    if(img.getAttribute("src")) return;
+    FOTOS.leer(img.dataset.foto, function(d){ if(d) img.src = d; });
+  });
+}
+
+function verFoto(id){
+  FOTOS.leer(id, function(d){
+    if(!d){ avisar("No se encontró la foto"); return; }
+    document.getElementById("lupaImg").src = d;
+    document.getElementById("lupa").classList.add("open");
+    document.getElementById("lupa").dataset.foto = id;
+  });
+}
+function borrarFotoActual(){
+  var lupa = document.getElementById("lupa"), id = lupa.dataset.foto;
+  if(!id) return;
+  if(!confirm("¿Eliminar esta fotografía?")) return;
+  DB.lotes.forEach(function(l){
+    l.ev.forEach(function(e){
+      if(e.fotos) e.fotos = e.fotos.filter(function(f){ return f !== id; });
+    });
+  });
+  // Un evento que solo era una foto deja de tener sentido sin ella.
+  DB.lotes.forEach(function(l){
+    l.ev = l.ev.filter(function(e){ return !(e.t === "foto" && !e.fotos.length && !e.txt); });
+  });
+  FOTOS.borrar(id);
+  guardar();
+  lupa.classList.remove("open");
+  render();
+  avisar("Foto eliminada");
+}
+
+/* ============================================================
+   11. Código QR (modo byte, nivel Q, versiones 1 a 10)
+   ============================================================ */
+
+var QR = (function(){
+  /* Aritmética en GF(256), polinomio 0x11D */
+  var EXP = [], LOG = [];
+  (function(){
+    var x = 1;
+    for(var i=0; i<255; i++){ EXP[i] = x; LOG[x] = i; x <<= 1; if(x & 256) x ^= 0x11D; }
+    for(i=255; i<512; i++) EXP[i] = EXP[i-255];
+  })();
+  function mul(a,b){ return (a === 0 || b === 0) ? 0 : EXP[LOG[a] + LOG[b]]; }
+
+  // Polinomio generador de n codewords de corrección: producto de (x − α^i)
+  function generador(n){
+    var g = [1];
+    for(var i=0; i<n; i++){
+      var ng = [];
+      for(var j=0; j<g.length+1; j++) ng[j] = 0;
+      for(j=0; j<g.length; j++){
+        ng[j]   ^= g[j];
+        ng[j+1] ^= mul(g[j], EXP[i]);
+      }
+      g = ng;
+    }
+    return g;
+  }
+  function correccion(datos, n){
+    var g = generador(n), res = datos.slice();
+    for(var i=0; i<n; i++) res.push(0);
+    for(i=0; i<datos.length; i++){
+      var c = res[i];
+      if(c === 0) continue;
+      for(var j=0; j<g.length; j++) res[i+j] ^= mul(g[j], c);
+    }
+    return res.slice(datos.length);
+  }
+
+  /* [total codewords, ec por bloque, bloques g1, datos g1, bloques g2, datos g2] */
+  var VER = {
+    1:[26,13,1,13,0,0],   2:[44,22,1,22,0,0],    3:[70,18,2,17,0,0],
+    4:[100,26,2,24,0,0],  5:[134,18,2,15,2,16],  6:[172,24,4,19,0,0],
+    7:[196,18,2,14,4,15], 8:[242,22,4,18,2,19],  9:[292,20,4,16,4,17],
+    10:[346,24,6,19,2,20]
+  };
+  var ALIN = {2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],7:[6,22,38],8:[6,24,42],9:[6,26,46],10:[6,28,50]};
+
+  function datosCw(v){ var t = VER[v]; return t[3]*t[2] + t[5]*t[4]; }
+  function bitsCuenta(v){ return v < 10 ? 8 : 16; }
+  function capacidad(v){ return Math.floor((datosCw(v)*8 - 4 - bitsCuenta(v)) / 8); }
+
+  function utf8(txt){
+    var out = [], s = encodeURIComponent(txt);
+    for(var i=0; i<s.length; i++){
+      if(s.charAt(i) === "%"){ out.push(parseInt(s.substr(i+1,2),16)); i += 2; }
+      else out.push(s.charCodeAt(i));
+    }
+    return out;
+  }
+
+  function bitsFormato(mascara){          // nivel Q = 11
+    var d = (3 << 3) | mascara, v = d << 10;
+    for(var i=14; i>=10; i--) if((v >>> i) & 1) v ^= 0x537 << (i-10);
+    return ((d << 10) | v) ^ 0x5412;
+  }
+  function bitsVersion(ver){
+    var v = ver << 12;
+    for(var i=17; i>=12; i--) if((v >>> i) & 1) v ^= 0x1F25 << (i-12);
+    return (ver << 12) | v;
+  }
+  function mascaraOn(m, x, y){
+    switch(m){
+      case 0: return (x + y) % 2 === 0;
+      case 1: return y % 2 === 0;
+      case 2: return x % 3 === 0;
+      case 3: return (x + y) % 3 === 0;
+      case 4: return (Math.floor(x/3) + Math.floor(y/2)) % 2 === 0;
+      case 5: return (x*y) % 2 + (x*y) % 3 === 0;
+      case 6: return ((x*y) % 2 + (x*y) % 3) % 2 === 0;
+      default: return (((x + y) % 2) + ((x*y) % 3)) % 2 === 0;
+    }
+  }
+  function lienzo(n){
+    var m = [];
+    for(var y=0; y<n; y++){ m[y] = []; for(var x=0; x<n; x++) m[y][x] = 0; }
+    return m;
+  }
+
+  function armar(ver, cw){
+    var n = 17 + 4*ver, mods = lienzo(n), fija = lienzo(n);
+    function poner(x, y, v){ mods[y][x] = v ? 1 : 0; fija[y][x] = 1; }
+
+    function finder(cx, cy){
+      for(var dy=-4; dy<=4; dy++) for(var dx=-4; dx<=4; dx++){
+        var x = cx+dx, y = cy+dy;
+        if(x < 0 || y < 0 || x >= n || y >= n) continue;
+        var d = Math.max(Math.abs(dx), Math.abs(dy));
+        poner(x, y, d !== 2 && d <= 3);
+      }
+    }
+    finder(3,3); finder(n-4,3); finder(3,n-4);
+
+    for(var i=8; i<n-8; i++){ poner(i, 6, i % 2 === 0); poner(6, i, i % 2 === 0); }
+
+    var pos = ALIN[ver] || [];
+    for(var a=0; a<pos.length; a++) for(var b=0; b<pos.length; b++){
+      var cx = pos[a], cy = pos[b];
+      if((cx === 6 && cy === 6) || (cx === 6 && cy === n-7) || (cx === n-7 && cy === 6)) continue;
+      for(var dy=-2; dy<=2; dy++) for(var dx=-2; dx<=2; dx++)
+        poner(cx+dx, cy+dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+    }
+
+    for(i=0; i<=5; i++) poner(8, i, 0);
+    poner(8,7,0); poner(8,8,0); poner(7,8,0);
+    for(i=9; i<15; i++) poner(14-i, 8, 0);
+    for(i=0; i<8; i++) poner(n-1-i, 8, 0);
+    for(i=8; i<15; i++) poner(8, n-15+i, 0);
+    poner(8, n-8, 1);
+
+    if(ver >= 7){
+      var bv = bitsVersion(ver);
+      for(i=0; i<18; i++){
+        var bit = (bv >>> i) & 1, p = n - 11 + (i % 3), q = Math.floor(i/3);
+        poner(p, q, bit); poner(q, p, bit);
+      }
+    }
+
+    // Datos en zigzag: pares de columnas de derecha a izquierda
+    var i8 = 0;
+    for(var der = n-1; der >= 1; der -= 2){
+      if(der === 6) der = 5;
+      for(var v2 = 0; v2 < n; v2++){
+        for(var j=0; j<2; j++){
+          var x = der - j, sube = ((der + 1) & 2) === 0;
+          var y = sube ? n-1-v2 : v2;
+          if(!fija[y][x] && i8 < cw.length*8){
+            mods[y][x] = (cw[i8 >>> 3] >>> (7 - (i8 & 7))) & 1;
+            i8++;
+          }
+        }
+      }
+    }
+    return {n:n, mods:mods, fija:fija};
+  }
+
+  // Se elige la máscara con menor penalización, como manda la norma.
+  function penal(mods, n){
+    var p = 0, x, y;
+    function rachas(get){
+      var s = 0;
+      for(var a=0; a<n; a++){
+        var run = 1;
+        for(var b=1; b<n; b++){
+          if(get(a,b) === get(a,b-1)) run++;
+          else { if(run >= 5) s += run - 2; run = 1; }
+        }
+        if(run >= 5) s += run - 2;
+      }
+      return s;
+    }
+    p += rachas(function(a,b){ return mods[a][b]; });
+    p += rachas(function(a,b){ return mods[b][a]; });
+
+    for(y=0; y<n-1; y++) for(x=0; x<n-1; x++){
+      var v = mods[y][x];
+      if(v === mods[y][x+1] && v === mods[y+1][x] && v === mods[y+1][x+1]) p += 3;
+    }
+
+    var A = [1,0,1,1,1,0,1,0,0,0,0], B = [0,0,0,0,1,0,1,1,1,0,1];
+    function calza(get, a, b, pat){
+      for(var k=0; k<11; k++) if(get(a, b+k) !== pat[k]) return false;
+      return true;
+    }
+    var filaGet = function(r,c){ return mods[r][c]; }, colGet = function(c,r){ return mods[r][c]; };
+    for(y=0; y<n; y++) for(x=0; x<=n-11; x++){
+      if(calza(filaGet, y, x, A)) p += 40;
+      if(calza(filaGet, y, x, B)) p += 40;
+    }
+    for(x=0; x<n; x++) for(y=0; y<=n-11; y++){
+      if(calza(colGet, x, y, A)) p += 40;
+      if(calza(colGet, x, y, B)) p += 40;
+    }
+
+    var osc = 0;
+    for(y=0; y<n; y++) for(x=0; x<n; x++) osc += mods[y][x];
+    p += Math.floor(Math.abs(osc*100/(n*n) - 50) / 5) * 10;
+    return p;
+  }
+
+  function codificar(texto){
+    var bytes = utf8(texto), ver = 0;
+    for(var v=1; v<=10; v++){ if(bytes.length <= capacidad(v)){ ver = v; break; } }
+    if(!ver) return null;
+
+    var t = VER[ver], nDatos = datosCw(ver), bits = [], i, j;
+    function push(val, len){ for(var q=len-1; q>=0; q--) bits.push((val >>> q) & 1); }
+    push(4, 4);
+    push(bytes.length, bitsCuenta(ver));
+    for(i=0; i<bytes.length; i++) push(bytes[i], 8);
+    push(0, Math.min(4, nDatos*8 - bits.length));
+    while(bits.length % 8 !== 0) bits.push(0);
+
+    var datos = [];
+    for(i=0; i<bits.length; i += 8){
+      var b = 0;
+      for(j=0; j<8; j++) b = (b << 1) | bits[i+j];
+      datos.push(b);
+    }
+    var relleno = [0xEC, 0x11], k = 0;
+    while(datos.length < nDatos){ datos.push(relleno[k % 2]); k++; }
+
+    var lista = [], bloques = [], ecs = [], off = 0;
+    for(i=0; i<t[2]; i++) lista.push(t[3]);
+    for(i=0; i<t[4]; i++) lista.push(t[5]);
+    for(i=0; i<lista.length; i++){
+      var d = datos.slice(off, off + lista[i]); off += lista[i];
+      bloques.push(d);
+      ecs.push(correccion(d, t[1]));
+    }
+    var cw = [], maxD = Math.max.apply(null, lista);
+    for(i=0; i<maxD; i++) for(j=0; j<bloques.length; j++) if(i < bloques[j].length) cw.push(bloques[j][i]);
+    for(i=0; i<t[1]; i++) for(j=0; j<ecs.length; j++) cw.push(ecs[j][i]);
+
+    var base = armar(ver, cw), mejor = null, n = base.n;
+    for(var m=0; m<8; m++){
+      var mm = [], y, x;
+      for(y=0; y<n; y++){
+        mm[y] = [];
+        for(x=0; x<n; x++) mm[y][x] = base.fija[y][x] ? base.mods[y][x] : (base.mods[y][x] ^ (mascaraOn(m,x,y) ? 1 : 0));
+      }
+      var f = bitsFormato(m);
+      for(i=0; i<=5; i++) mm[i][8] = (f >>> i) & 1;
+      mm[7][8] = (f >>> 6) & 1; mm[8][8] = (f >>> 7) & 1; mm[8][7] = (f >>> 8) & 1;
+      for(i=9; i<15; i++) mm[8][14-i] = (f >>> i) & 1;
+      for(i=0; i<8; i++) mm[8][n-1-i] = (f >>> i) & 1;
+      for(i=8; i<15; i++) mm[n-15+i][8] = (f >>> i) & 1;
+
+      var pp = penal(mm, n);
+      if(!mejor || pp < mejor.p) mejor = {p:pp, mods:mm, m:m};
+    }
+    return {n:n, mods:mejor.mods, ver:ver, mascara:mejor.m};
+  }
+
+  // Un solo path: nítido a cualquier tamaño y liviano al imprimir.
+  // El margen blanco va por fuera: en la etiqueta lo pone el papel, así los
+  // módulos quedan más gruesos dentro del mismo cuadrado.
+  function svg(texto, extra, margen){
+    var q = codificar(texto);
+    if(!q) return "";
+    var quiet = margen == null ? 4 : margen, n = q.n, total = n + quiet*2, d = "";
+    for(var y=0; y<n; y++){
+      var x = 0;
+      while(x < n){
+        if(!q.mods[y][x]){ x++; continue; }
+        var largo = 0;
+        while(x + largo < n && q.mods[y][x+largo]) largo++;
+        d += "M" + (x+quiet) + " " + (y+quiet) + "h" + largo + "v1h-" + largo + "z";
+        x += largo;
+      }
+    }
+    return '<svg viewBox="0 0 ' + total + " " + total + '" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" ' + (extra || "") + '>' +
+      '<rect width="' + total + '" height="' + total + '" fill="#fff"/>' +
+      '<path d="' + d + '" fill="#000"/></svg>';
+  }
+
+  return {svg:svg, codificar:codificar};
+})();
+
+/* ============================================================
+   12. Etiquetas
+   ============================================================ */
+
+// Dirección desde la que se abre la app en el teléfono: es la que viaja en el QR.
+function baseURL(){
+  if(DB.cfg.base) return DB.cfg.base;
+  if(location.protocol === "http:" || location.protocol === "https:"){
+    return location.origin + location.pathname;
+  }
+  return "";
+}
+function urlLote(l){
+  var b = baseURL();
+  if(!b) return l.cod;                                   // sin dirección, el QR lleva solo el código
+  return b.split("#")[0] + "#/l/" + encodeURIComponent(l.cod);
+}
+
+var MARCA_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M3.2 10.5c0-4.2 3.9-7 8.8-7s8.8 2.8 8.8 7c0 1.1-.9 1.7-2.2 1.7H5.4c-1.3 0-2.2-.6-2.2-1.7Z"/>' +
+  '<path d="M9.6 12.2v5.4c0 1.6.9 2.6 2.4 2.6s2.4-1 2.4-2.6v-5.4"/></svg>';
+
+function etiquetaHTML(l, chica, svgQR){
+  var h = '<div class="et' + (chica ? " et--s" : "") + '">';
+  h += '<div class="et__t">';
+  h += '<div class="et__marca">' + MARCA_SVG + "<span>Hongos del Sur</span></div>";
+  h += '<div class="et__nom">' + esc(nomLote(l)) + "</div>";
+  if(sciLote(l)) h += '<div class="et__sci">' + esc(sciLote(l)) + "</div>";
+  h += '<div class="et__sep"><div class="et__k">Lote</div>';
+  h += '<div class="et__cod">' + esc(l.cod) + "</div>";
+  h += '<div class="et__f">Inoculación · ' + esc(l.finoc ? fechaAnio(l.finoc) : "—") + "</div></div>";
+  h += "</div>";
+  h += '<div class="et__qr">' + svgQR + "<span>Escanea</span></div>";
+  h += "</div>";
+  return h;
+}
+
+function imprimirEtiquetas(l, chica, cant){
+  var svgQR = QR.svg(urlLote(l), "", 2), una = etiquetaHTML(l, chica, svgQR), h = '<div class="hojaGrid">';
+  for(var i=0; i<cant; i++) h += una;
+  h += "</div>";
+  document.getElementById("hojaEtiq").innerHTML = h;
+  // El navegador necesita un respiro para maquetar en milímetros antes de imprimir.
+  setTimeout(function(){ window.print(); }, 120);
+}
+
+/* ============================================================
+   13. Hojas modales
+   ============================================================ */
+
+function abrirHoja(html){
+  document.getElementById("sheetPanel").innerHTML = '<div class="grab"></div>' + html;
+  document.getElementById("sheet").classList.add("open");
+}
+function cerrarHoja(){ document.getElementById("sheet").classList.remove("open"); }
+
+function hojaInsumo(id){
+  var nuevo = id === "nuevo";
+  var it = nuevo
+    ? {id:"", et:"1", nom:"", uni:"unidades", min:0, costo:0, prov:"", tipo:"n", off:false}
+    : porId(id);
+  if(!it) return;
+
+  var h = '<h2 class="sheet__t">' + (nuevo ? "Nuevo insumo" : "Editar insumo") + "</h2>";
+  h += '<p class="sheet__d">' + (nuevo ? "Se agregará al conteo semanal de la etapa que elijas." : "Los cambios no borran el historial de conteos.") + "</p>";
+  h += '<div class="field"><label for="f_nom">Nombre</label><input id="f_nom" value="' + esc(it.nom) + '" placeholder="Ej: Mushbag PP5 con filtro"></div>';
+
+  h += '<div class="field"><label for="f_et">Etapa</label><select id="f_et">';
+  ETAPAS.forEach(function(e){
+    h += '<option value="' + e.k + '"' + (e.k === it.et ? " selected" : "") + ">" + (e.k === "c" ? "" : e.k + " · ") + esc(e.n) + "</option>";
+  });
+  h += "</select></div>";
+
+  h += '<div class="f2"><div class="field"><label for="f_uni">Unidad</label><select id="f_uni">';
+  UNIDADES.forEach(function(u){ h += '<option' + (u === it.uni ? " selected" : "") + ">" + u + "</option>"; });
+  h += "</select></div>";
+  h += '<div class="field"><label for="f_min">Stock mínimo</label><input id="f_min" type="number" inputmode="decimal" step="any" min="0" value="' + it.min + '"></div></div>';
+
+  h += '<div class="f2"><div class="field"><label for="f_costo">Costo por unidad (CLP)</label><input id="f_costo" type="number" inputmode="numeric" step="1" min="0" value="' + (it.costo || "") + '" placeholder="opcional"></div>';
+  h += '<div class="field"><label for="f_prov">Proveedor</label><input id="f_prov" value="' + esc(it.prov) + '" placeholder="opcional"></div></div>';
+
+  h += '<div class="f2"><div class="field"><label for="f_tipo">Tipo</label><select id="f_tipo">';
+  h += '<option value="n"' + (it.tipo !== "v" ? " selected" : "") + ">Insumo que compro</option>";
+  h += '<option value="v"' + (it.tipo === "v" ? " selected" : "") + ">Stock vivo (no se compra)</option></select></div>";
+  h += '<div class="field"><label for="f_off">Estado</label><select id="f_off">';
+  h += '<option value="0"' + (!it.off ? " selected" : "") + ">Activo en el conteo</option>";
+  h += '<option value="1"' + (it.off ? " selected" : "") + ">Pausado</option></select></div></div>";
+
+  h += '<div style="margin-top:6px"><button class="btn btn--primary" data-save="' + esc(it.id) + '">Guardar</button></div>';
+  if(!nuevo){
+    h += '<div style="margin-top:9px"><button class="btn btn--danger" data-del="' + esc(it.id) + '">Eliminar definitivamente</button></div>';
+  }
+  abrirHoja(h);
+  setTimeout(function(){ if(nuevo) document.getElementById("f_nom").focus(); }, 120);
+}
+
+function guardarInsumo(id){
+  var nom = document.getElementById("f_nom").value.trim();
+  if(!nom){ avisar("Ponle un nombre al insumo."); return; }
+  var datos = {
+    et: document.getElementById("f_et").value,
+    nom: nom,
+    uni: document.getElementById("f_uni").value,
+    min: Math.max(0, parseFloat(document.getElementById("f_min").value) || 0),
+    costo: Math.max(0, parseFloat(document.getElementById("f_costo").value) || 0),
+    prov: document.getElementById("f_prov").value.trim(),
+    tipo: document.getElementById("f_tipo").value,
+    off: document.getElementById("f_off").value === "1"
+  };
+  if(id){
+    var it = porId(id);
+    for(var k in datos) it[k] = datos[k];
+  } else {
+    datos.id = nuevoId();
+    DB.items.push(datos);
+  }
+  guardar(); cerrarHoja(); render();
+  avisar(id ? "Insumo actualizado" : "Insumo agregado");
+}
+
+function hojaLote(id){
+  var nuevo = id === "nuevo";
+  var l = nuevo
+    ? {id:"", cod:"", esp:"MEL", otro:"", cepa:"", finoc:hoyISO(), bolsas:20, peso:0, est:"inoc", obs:"", ev:[]}
+    : lotePorId(id);
+  if(!l) return;
+  var cod = nuevo ? nuevoCodigo(l.esp, l.finoc, l.otro) : l.cod;
+
+  var h = '<h2 class="sheet__t">' + (nuevo ? "Nuevo lote" : "Editar lote") + "</h2>";
+  h += '<p class="sheet__d">' + (nuevo
+    ? "El código se genera solo con la sigla de la especie, el mes y un correlativo. Puedes cambiarlo si prefieres otro."
+    : "Cambiar el estado aquí queda anotado en el historial.") + "</p>";
+
+  h += '<div class="field"><label for="f_esp">Hongo</label><select id="f_esp">';
+  ESPECIES.forEach(function(e){
+    h += '<option value="' + e.k + '"' + (e.k === l.esp ? " selected" : "") + ">" + esc(e.n) + (e.c ? " · " + esc(e.c) : "") + "</option>";
+  });
+  h += "</select></div>";
+
+  h += '<div class="field" id="wrapOtro"' + (l.esp === "OTR" ? "" : ' hidden') + '><label for="f_otro">Nombre del hongo</label>';
+  h += '<input id="f_otro" value="' + esc(l.otro || "") + '" placeholder="Ej: Pleurotus eryngii"></div>';
+
+  h += '<div class="f2"><div class="field"><label for="f_cepa">Variedad o cepa</label>';
+  h += '<input id="f_cepa" value="' + esc(l.cepa || "") + '" placeholder="opcional"></div>';
+  h += '<div class="field"><label for="f_finoc">Fecha de inoculación</label>';
+  h += '<input id="f_finoc" type="date" value="' + esc(l.finoc || hoyISO()) + '"></div></div>';
+
+  h += '<div class="f2"><div class="field"><label for="f_bolsas">Cantidad de bolsas</label>';
+  h += '<input id="f_bolsas" type="number" inputmode="numeric" step="1" min="0" value="' + (Number(l.bolsas)||0) + '"></div>';
+  h += '<div class="field"><label for="f_peso">Peso por bolsa (kg)</label>';
+  h += '<input id="f_peso" type="text" inputmode="decimal" value="' + (l.peso ? kg(l.peso) : "") + '" placeholder="opcional"></div></div>';
+
+  h += '<div class="field"><label for="f_est">Estado del cultivo</label><select id="f_est">';
+  ESTADOS.forEach(function(e){
+    h += '<option value="' + e.k + '"' + (e.k === l.est ? " selected" : "") + ">" + esc(e.n) + " · " + esc(e.d) + "</option>";
+  });
+  h += "</select></div>";
+
+  h += '<div class="field"><label for="f_cod">Código del lote</label>';
+  h += '<input id="f_cod" data-auto="' + (nuevo ? "1" : "0") + '" value="' + esc(cod) + '" style="font-family:var(--f-mono);font-weight:600;letter-spacing:.04em">';
+  h += '<span class="hint">Es el que va impreso en la etiqueta y el que viaja en el código QR.</span></div>';
+
+  h += '<div class="field"><label for="f_obs">Observaciones</label>';
+  h += '<textarea id="f_obs" placeholder="Sustrato, proporciones, dónde está…">' + esc(l.obs || "") + "</textarea></div>";
+
+  h += '<div style="margin-top:6px"><button class="btn btn--primary" data-lsave="' + esc(l.id) + '">' + (nuevo ? "Crear lote" : "Guardar") + "</button></div>";
+  abrirHoja(h);
+}
+
+function guardarLote(id){
+  var nuevo = !id;
+  var esp  = document.getElementById("f_esp").value;
+  var otro = document.getElementById("f_otro").value.trim();
+  var cod  = limpiarCod(document.getElementById("f_cod").value);
+  var finoc = document.getElementById("f_finoc").value;
+  var est  = document.getElementById("f_est").value;
+
+  if(esp === "OTR" && !otro){ avisar("Escribe el nombre del hongo."); return; }
+  if(!finoc){ avisar("Falta la fecha de inoculación."); return; }
+  if(!cod){ avisar("El lote necesita un código."); return; }
+  if(!codLibre(cod, id)){ avisar("Ya existe un lote con el código " + cod + "."); return; }
+
+  var datos = {
+    cod: cod, esp: esp, otro: otro,
+    cepa: document.getElementById("f_cepa").value.trim(),
+    finoc: finoc,
+    bolsas: Math.max(0, Math.round(leerNum(document.getElementById("f_bolsas").value))),
+    peso: Math.max(0, leerNum(document.getElementById("f_peso").value)),
+    obs: document.getElementById("f_obs").value.trim()
+  };
+
+  var l;
+  if(nuevo){
+    l = {id:nuevoId(), est:est, ev:[]};
+    for(var k in datos) l[k] = datos[k];
+    // El estado inicial también es un evento: el historial arranca completo.
+    agregarEvento(l, {t:"est", a:est, f:(est === "prep" ? hoyISO() : finoc), txt:""});
+    DB.lotes.push(l);
+  } else {
+    l = lotePorId(id);
+    for(var k2 in datos) l[k2] = datos[k2];
+    if(l.est !== est) ponerEstado(l, est, hoyISO(), "");
+  }
+
+  guardar(); cerrarHoja();
+  if(nuevo){ abrirLote(l.id); avisar("Lote " + l.cod + " creado"); }
+  else { render(); avisar("Lote actualizado"); }
+}
+
+/* --- Eventos del lote: cosecha, estado, descarte, observación, foto --- */
+
+var fotosPend = [];
+
+function hojaEvento(loteId, tipo, evId){
+  var l = lotePorId(loteId);
+  if(!l) return;
+  var ev = evId ? l.ev.filter(function(x){ return x.id === evId; })[0] : null;
+  if(evId && !ev) return;
+  tipo = ev ? ev.t : tipo;
+  fotosPend = [];
+
+  var titulos = {
+    cos:"Registrar cosecha", est:"Cambiar estado", cont:"Contaminación o descarte",
+    nota:"Observación", foto:"Agregar fotografías"
+  };
+  var h = '<h2 class="sheet__t">' + (ev ? "Editar · " : "") + titulos[tipo] + "</h2>";
+  h += '<p class="sheet__d">' + esc(l.cod) + " · " + esc(nomLote(l)) + "</p>";
+
+  h += '<div class="field"><label for="e_f">Fecha</label>';
+  h += '<input id="e_f" type="date" value="' + esc(ev ? ev.f : hoyISO()) + '"></div>';
+
+  if(tipo === "cos"){
+    h += '<div class="f2"><div class="field"><label for="e_kg">Peso cosechado (kg)</label>';
+    h += '<input id="e_kg" type="text" inputmode="decimal" value="' + (ev ? kg(ev.kg) : "") + '" placeholder="Ej: 2,4"></div>';
+    h += '<div class="field"><label>Oleada</label><input value="' + (ev ? "" : (cosechas(l).length + 1) + "ª") + '" disabled style="opacity:.6"></div></div>';
+  }
+  if(tipo === "est"){
+    h += '<div class="field"><label for="e_a">Nuevo estado</label><select id="e_a">';
+    ESTADOS.forEach(function(x){
+      var sel = ev ? ev.a === x.k : x.k === siguienteEstado(l.est);
+      h += '<option value="' + x.k + '"' + (sel ? " selected" : "") + ">" + esc(x.n) + " · " + esc(x.d) + "</option>";
+    });
+    h += "</select></div>";
+  }
+  if(tipo === "cont"){
+    h += '<div class="field"><label for="e_n">Bolsas afectadas</label>';
+    h += '<input id="e_n" type="number" inputmode="numeric" step="1" min="0" value="' + (ev ? ev.n : 1) + '">';
+    h += '<span class="hint">Quedan ' + bolsasVivas(l) + " bolsas sanas en este lote.</span></div>";
+  }
+
+  h += '<div class="field"><label for="e_txt">' + (tipo === "cont" ? "Qué pasó" : "Observación") + "</label>";
+  h += '<textarea id="e_txt" placeholder="' + (tipo === "cont" ? "Trichoderma en la base, bolsas retiradas…" : "opcional") + '">' + esc(ev ? ev.txt : "") + "</textarea></div>";
+
+  h += '<div class="field"><label>Fotografías</label>';
+  h += '<button class="btn btn--ghost" data-lact="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3.2l1.8-2h6l1.8 2H20v11H4Z"/><circle cx="12" cy="13" r="3.2"/></svg>Agregar fotos</button>';
+  h += '<div class="evgal" id="pendGal"></div></div>';
+
+  h += '<div style="margin-top:6px"><button class="btn btn--primary" data-esave="' + esc(loteId) + '" data-etipo="' + tipo + '" data-eid="' + esc(evId || "") + '">Guardar</button></div>';
+  if(ev) h += '<div style="margin-top:9px"><button class="btn btn--danger" data-eborrar="' + esc(evId) + '" data-elote="' + esc(loteId) + '">Eliminar este evento</button></div>';
+  abrirHoja(h);
+  if(ev && (ev.fotos || []).length) pintarPendientes(ev.fotos);
+}
+
+// Al cambiar de estado, la app propone el siguiente paso del ciclo.
+function siguienteEstado(k){
+  var orden = ["prep","inoc","incu","fruc","cose","fin"];
+  var i = orden.indexOf(k);
+  return i < 0 || i === orden.length-1 ? "fin" : orden[i+1];
+}
+
+function pintarPendientes(idsGuardadas){
+  var caja = document.getElementById("pendGal");
+  if(!caja) return;
+  var h = "";
+  (idsGuardadas || []).forEach(function(id){ h += '<button data-ver="' + esc(id) + '"><img data-foto="' + esc(id) + '" alt=""></button>'; });
+  fotosPend.forEach(function(d, i){ h += '<img src="' + d + '" alt="Foto por guardar ' + (i+1) + '">'; });
+  caja.innerHTML = h;
+  cargarFotos(caja);
+}
+
+function guardarEvento(loteId, tipo, evId){
+  var l = lotePorId(loteId);
+  if(!l) return;
+  var ev = evId ? l.ev.filter(function(x){ return x.id === evId; })[0] : null;
+  var f = document.getElementById("e_f").value || hoyISO();
+  var txt = document.getElementById("e_txt").value.trim();
+
+  var kgv = 0, nv = 0, av = "";
+  if(tipo === "cos"){
+    kgv = Math.max(0, leerNum(document.getElementById("e_kg").value));
+    if(!kgv){ avisar("¿Cuántos kilos cosechaste?"); return; }
+  }
+  if(tipo === "cont"){
+    nv = Math.max(0, Math.round(parseFloat(document.getElementById("e_n").value) || 0));
+    if(!nv && !txt){ avisar("Anota cuántas bolsas o qué pasó."); return; }
+  }
+  if(tipo === "est") av = document.getElementById("e_a").value;
+  if(tipo === "foto" && !fotosPend.length && !(ev && (ev.fotos || []).length) && !txt){ avisar("Agrega al menos una foto."); return; }
+
+  guardarFotosPendientes(function(nuevas){
+    var aviso = "Guardado";
+    if(ev){
+      ev.f = f; ev.txt = txt;
+      if(tipo === "cos") ev.kg = kgv;
+      if(tipo === "cont") ev.n = nv;
+      if(tipo === "est"){ ev.a = av; l.est = ultimoEstado(l); }
+      ev.fotos = (ev.fotos || []).concat(nuevas);
+    } else if(tipo === "est"){
+      var ue = ponerEstado(l, av, f, txt);
+      if(ue){ ue.fotos = nuevas; aviso = "Ahora está en " + estDe(av).n; }
+      else aviso = "El lote ya estaba en " + estDe(av).n;
+    } else {
+      // Cosechar sobre un lote que aún figura en incubación lo pasa a cosecha solo.
+      if(tipo === "cos" && !CERRADOS[l.est] && l.est !== "cose"){
+        ponerEstado(l, "cose", f, "");
+        aviso = "Cosecha anotada · el lote pasó a Cosecha";
+      } else if(tipo === "cos"){
+        aviso = kg(kgv) + " kg anotados";
+      }
+      agregarEvento(l, {t:tipo, f:f, txt:txt, kg:kgv, n:nv, fotos:nuevas});
+    }
+
+    // Si se descartaron todas las bolsas, el lote se cierra.
+    if(tipo === "cont" && bolsasVivas(l) === 0 && !CERRADOS[l.est]){
+      ponerEstado(l, "desc", f, "Sin bolsas sanas");
+      aviso = "Lote descartado: no quedan bolsas sanas";
+    }
+
+    guardar(); cerrarHoja(); render();
+    avisar(aviso);
+  });
+}
+
+function ultimoEstado(l){
+  var es = evsOrden(l).filter(function(x){ return x.t === "est"; });
+  return es.length ? es[es.length-1].a : l.est;
+}
+
+function guardarFotosPendientes(cb){
+  if(!fotosPend.length){ cb([]); return; }
+  var ids = [], i = 0, total = fotosPend.length;
+  (function paso(){
+    if(i >= total){ fotosPend = []; cb(ids); return; }
+    var id = "f" + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+    var dato = fotosPend[i++];
+    FOTOS.guardar(id, dato, function(ok){
+      if(ok) ids.push(id);
+      else avisar("No se pudo guardar una foto (falta espacio)");
+      paso();
+    });
+  })();
+}
+
+function borrarEvento(loteId, evId){
+  var l = lotePorId(loteId);
+  if(!l) return;
+  var ev = l.ev.filter(function(x){ return x.id === evId; })[0];
+  if(!ev) return;
+  if(!confirm("¿Eliminar «" + tituloEvento(l, ev) + "» del historial?")) return;
+  (ev.fotos || []).forEach(function(f){ FOTOS.borrar(f); });
+  l.ev = l.ev.filter(function(x){ return x.id !== evId; });
+  if(ev.t === "est") l.est = ultimoEstado(l);
+  guardar(); cerrarHoja(); render();
+  avisar("Evento eliminado");
+}
+
+/* --- Etiqueta con QR --- */
+
+var etiqChica = false;
+
+function hojaEtiqueta(loteId, cant){
+  var l = lotePorId(loteId);
+  if(!l) return;
+  var url = urlLote(l), svgQR = QR.svg(url, "", 2);
+  if(cant == null) cant = Math.max(1, bolsasVivas(l) || Number(l.bolsas) || 1);
+
+  var h = '<h2 class="sheet__t">Etiqueta del lote</h2>';
+  h += '<p class="sheet__d">Se imprime en hoja A4 con guías de corte. Al escanear el QR desde el teléfono se abre la ficha de este lote.</p>';
+  h += '<div class="etprev" id="etPrev">' + etiquetaHTML(l, etiqChica, svgQR) + "</div>";
+
+  h += '<div class="f2"><div class="field"><label for="t_tam">Tamaño</label><select id="t_tam">';
+  h += '<option value="0"' + (etiqChica ? "" : " selected") + ">Mediana · 64×46 mm (18 por hoja)</option>";
+  h += '<option value="1"' + (etiqChica ? " selected" : "") + ">Chica · 48×34 mm (32 por hoja)</option></select></div>";
+  h += '<div class="field"><label for="t_cant">Cuántas etiquetas</label>';
+  h += '<input id="t_cant" type="number" inputmode="numeric" step="1" min="1" max="500" value="' + cant + '">';
+  h += "</div></div>";
+  h += '<p class="note" style="margin-top:0">Una por bolsa: vienen ' + bolsasVivas(l) + " precargadas.</p>";
+
+  h += '<div style="margin-top:12px"><button class="btn btn--primary" data-timp="' + esc(l.id) + '">';
+  h += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5h20v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></svg>Imprimir o guardar PDF</button></div>';
+  h += '<div style="margin-top:9px"><button class="btn btn--ghost" data-tqr="' + esc(l.id) + '">Descargar solo el QR (SVG)</button></div>';
+
+  if(!baseURL()){
+    h += '<p class="note" style="color:var(--crit)">Falta la dirección de la app: por ahora el QR lleva solo el texto «' + esc(l.cod) + '». Configúrala en el menú ⋮ → Dirección para los códigos QR para que al escanear se abra la ficha.</p>';
+  } else {
+    h += '<p class="note">El QR apunta a:<br><span style="font-family:var(--f-mono);font-size:.7rem;word-break:break-all">' + esc(url) + "</span></p>";
+  }
+  abrirHoja(h);
+}
+
+function hojaBase(){
+  var h = '<h2 class="sheet__t">Dirección para los códigos QR</h2>';
+  h += '<p class="sheet__d">El QR de cada etiqueta guarda una dirección web. Para que al escanear con la cámara se abra la ficha del lote, esa dirección tiene que ser la misma desde donde abres esta app en el teléfono.</p>';
+  h += '<div class="field"><label for="b_url">Dirección de la app</label>';
+  h += '<input id="b_url" value="' + esc(DB.cfg.base) + '" placeholder="https://hongosdelsur.cl/inventario/" style="font-family:var(--f-mono);font-size:.82rem">';
+  h += '<span class="hint">Déjala vacía para usar la dirección desde la que se abrió la app' +
+       (baseURL() ? " (ahora: " + esc(baseURL()) + ")" : ", que en este momento no sirve porque la app está abierta como archivo local") + ".</span></div>";
+  h += '<div style="margin-top:6px"><button class="btn btn--primary" data-lact="savebase">Guardar</button></div>';
+  h += '<p class="note">Las etiquetas ya impresas seguirán apuntando a la dirección que tenían al imprimirse.</p>';
+  abrirHoja(h);
+}
+
+function hojaMenu(){
+  var h = '<h2 class="sheet__t">Respaldos y datos</h2>';
+  h += '<p class="sheet__d">Los datos viven solo en este dispositivo. Respalda una vez al mes: si cambias de teléfono o se limpia el navegador, el archivo de respaldo es la única forma de recuperarlos.</p>';
+
+  h += '<button class="menu__item" data-act="respaldo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg><span>Descargar respaldo<small>Archivo con todo: insumos e historial</small></span></button>';
+  h += '<button class="menu__item" data-act="restaurar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg><span>Restaurar desde respaldo<small>Reemplaza todo lo que hay ahora</small></span></button>';
+  h += '<button class="menu__item" data-act="csv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg><span>Exportar inventario (CSV)<small>Stock actual, listo para abrir en Excel</small></span></button>';
+  h += '<button class="menu__item" data-act="csvlotes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12.4 21.6a2 2 0 0 1-2.8 0l-7.2-7.2a2 2 0 0 1-.6-1.4V4.4A2 2 0 0 1 3.8 2.4h8.6a2 2 0 0 1 1.4.6l6.8 6.8a2 2 0 0 1 0 2.8Z"/><circle cx="7.3" cy="7.3" r="1.3"/></svg><span>Exportar lotes (CSV)<small>Producción y rendimiento de cada lote</small></span></button>';
+  h += '<button class="menu__item" data-act="base"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14h1M17 20h4M14 20h.01"/></svg><span>Dirección para los códigos QR<small>' + (baseURL() ? esc(baseURL()) : "sin configurar") + "</small></span></button>";
+  h += '<button class="menu__item" data-act="tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span>Cambiar claro / oscuro<small>Se guarda para la próxima vez</small></span></button>';
+  h += '<button class="menu__item" data-act="ayuda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg><span>Cómo funciona<small>Rutina semanal y cálculos</small></span></button>';
+  h += '<button class="menu__item" data-act="reset" style="color:var(--crit)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg><span>Empezar de cero<small>Borra insumos e historial</small></span></button>';
+  abrirHoja(h);
+}
+
+function hojaAyuda(){
+  var h = '<h2 class="sheet__t">Cómo funciona</h2>';
+  h += '<p class="sheet__d">Tres minutos por semana, caminando con el teléfono.</p>';
+  h += '<div style="font-size:.88rem;line-height:1.65;color:var(--ink-soft)">';
+  h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">1. Recorre y cuenta.</strong> Cada insumo ya viene con el número de la semana pasada. Si no cambió, no lo toques: usa <em>«Todo igual que la semana pasada»</em> para confirmar la etapa completa de un toque.</p>";
+  h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">2. Anota lo que compraste.</strong> Toca el nombre del insumo y llena «¿Compraste esta semana?». Es lo que permite separar lo que gastaste de lo que repusiste.</p>";
+  h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">3. Cierra el conteo.</strong> Queda guardado con fecha. Con dos conteos cerrados la app ya sabe cuánto consumes por semana.</p>";
+  h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">Cobertura</strong> = lo que te queda dividido por el consumo promedio de las últimas 6 semanas. «3 sem» significa que a este ritmo te alcanza tres semanas más. Bajo 2,5 semanas se marca amarillo; bajo 1 semana, rojo.</p>";
+  h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">Consumo</strong> = stock anterior + compras − stock actual. Si el stock sube y no anotaste compra, la app asume que compraste y no te cuenta consumo negativo.</p>";
+  h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">Compartidos.</strong> El alcohol, los guantes o el yeso se usan en varias etapas. Están en su propio grupo para que los cuentes una sola vez y el inventario no quede inflado.</p>";
+  h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">Stock vivo.</strong> Placas madre, frascos de cultivo líquido, bolsas en incubación, hongo en cámara. Se cuentan, pero nunca aparecen en la lista de compra.</p>";
+  h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">Lotes.</strong> Cada tanda de bolsas es un lote con su código, su estado y su historial. Al crearlo se genera el código QR; imprime la etiqueta desde la ficha y pégala en cada bolsa.</p>";
+  h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">Escanear para cosechar.</strong> Apunta la cámara del teléfono al QR de la bolsa: se abre la ficha de ese lote y el primer botón es «Registrar cosecha». Para que funcione, la app tiene que estar abierta desde una dirección web (menú ⋮ → Dirección para los códigos QR).</p>";
+  h += "<p><strong style=\"color:var(--ink)\">Rendimiento.</strong> Los kilos cosechados divididos por las bolsas sanas del lote, en gramos por bolsa. Si además cargas el peso por bolsa, la ficha calcula el rendimiento sobre el sustrato en porcentaje.</p>";
+  h += "</div>";
+  abrirHoja(h);
+}
+
+/* ============================================================
+   14. Exportar / importar
+   ============================================================ */
+
+// Dos caminos: en claude.ai se usa el diálogo del visor; abierto como archivo
+// local, una descarga normal del navegador.
+function descargar(nombre, texto, mime){
+  if(window.claude && window.claude.downloads && window.claude.downloads.save){
+    viaVisor(nombre, texto, false);
+    return;
+  }
+  try{
+    var blob = new Blob([texto], {type:(mime || "text/plain") + ";charset=utf-8"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = nombre;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+    avisar("Archivo descargado");
+  }catch(e){
+    avisar("Este navegador no permitió descargar el archivo");
+  }
+}
+
+function viaVisor(nombre, texto, reintento){
+  window.claude.downloads.save({filename:nombre, data:texto}).then(function(){
+    avisar(reintento ? "Guardado como .txt — renómbralo a .csv para Excel" : "Archivo guardado");
+  }, function(err){
+    var code = err && err.code;
+    // .csv no siempre está habilitado; .txt con el mismo contenido sí sirve.
+    if(code === "extension_not_enabled" && !reintento){
+      viaVisor(nombre.replace(/\.[^.]+$/, "") + ".txt", texto, true);
+      return;
+    }
+    if(code === "declined") return;
+    avisar("No se pudo guardar el archivo");
+  });
+}
+
+function csvInventario(){
+  var f = [["Etapa","Insumo","Unidad","Stock","Minimo","Consumo semanal","Cobertura (sem)","Costo unitario","Valor","Proveedor","Estado"]];
+  activos().forEach(function(i){
+    var cp = consumoProm(i.id), cob = cobertura(i.id);
+    var est = estado(i);
+    f.push([
+      etapaDe(i.et).n, i.nom, i.uni,
+      num(stock(i.id)), num(i.min),
+      cp == null ? "" : num(cp),
+      cob == null ? "" : num(cob),
+      i.costo || "", Math.round(stock(i.id) * (i.costo || 0)) || "",
+      i.prov,
+      est === "vivo" ? "stock vivo" : est === "crit" ? "comprar" : est === "warn" ? "se acaba" : "ok"
+    ]);
+  });
+  // Punto y coma: es el separador que espera Excel en configuración chilena.
+  // El BOM inicial hace que Excel respete los acentos.
+  return "﻿" + f.map(function(fila){
+    return fila.map(function(c){
+      c = String(c == null ? "" : c);
+      return /[";\n]/.test(c) ? '"' + c.replace(/"/g,'""') + '"' : c;
+    }).join(";");
+  }).join("\r\n");
+}
+
+function csvLotes(){
+  var f = [["Codigo","Hongo","Nombre cientifico","Cepa","Inoculacion","Dias","Estado","Bolsas","Descartadas","Peso por bolsa (kg)","Cosechado (kg)","Oleadas","Rendimiento (g/bolsa)","Sobre sustrato (%)","Estimado cosecha","Observaciones"]];
+  var hoy = hoyISO();
+  ordenarLotes("todos").forEach(function(l){
+    var rb = rendBolsa(l), rp = rendPct(l), e = estimado(l);
+    f.push([
+      l.cod, nomLote(l), sciLote(l), l.cepa || "",
+      l.finoc || "", l.finoc ? diasEntre(l.finoc, hoy) : "",
+      estDe(l.est).n, Number(l.bolsas) || 0, descartadas(l), l.peso ? kg(l.peso) : "",
+      kg(kgLote(l)), cosechas(l).length,
+      rb == null ? "" : Math.round(rb),
+      rp == null ? "" : num(rp),
+      e ? e.f : "", (l.obs || "").replace(/\s+/g," ")
+    ]);
+  });
+  return "﻿" + f.map(function(fila){
+    return fila.map(function(c){
+      c = String(c == null ? "" : c);
+      return /[";\n]/.test(c) ? '"' + c.replace(/"/g,'""') + '"' : c;
+    }).join(";");
+  }).join("\r\n");
+}
+
+// El respaldo se lleva también las fotografías, que viven fuera de localStorage.
+function respaldar(){
+  var ids = [];
+  DB.lotes.forEach(function(l){
+    l.ev.forEach(function(e){ (e.fotos || []).forEach(function(f){ ids.push(f); }); });
+  });
+  if(!ids.length){
+    descargar("inventario-hongos-" + hoyISO() + ".json", JSON.stringify(DB), "application/json");
+    return;
+  }
+  avisar("Preparando el respaldo con " + ids.length + " fotos…");
+  FOTOS.varias(ids, function(fotos){
+    var copia = JSON.parse(JSON.stringify(DB));
+    copia._fotos = fotos;
+    descargar("inventario-hongos-" + hoyISO() + ".json", JSON.stringify(copia), "application/json");
+  });
+}
+
+function textoCompra(){
+  var l = porComprar();
+  if(!l.length) return "No falta nada por ahora.";
+  var t = "Lista de compra · Hongos del Sur · " + fechaLarga(hoyISO()) + "\n";
+  var etAct = "";
+  l.forEach(function(x){
+    var en = etapaDe(x.it.et).n;
+    if(en !== etAct){ t += "\n" + en.toUpperCase() + "\n"; etAct = en; }
+    t += "• " + x.it.nom + " — " + num(x.sug) + " " + x.it.uni;
+    if(x.est === "crit") t += "  (urgente)";
+    t += "\n";
+  });
+  return t;
+}
+
+function restaurar(){
+  var inp = document.createElement("input");
+  inp.type = "file";
+  inp.accept = ".json,application/json";
+  inp.onchange = function(){
+    var f = inp.files && inp.files[0];
+    if(!f) return;
+    var lector = new FileReader();
+    lector.onload = function(){
+      try{
+        var d = JSON.parse(String(lector.result).replace(/^﻿/,""));
+        if(!d || !Array.isArray(d.items) || !Array.isArray(d.semanas)) throw new Error("formato");
+        var fotos = d._fotos;
+        delete d._fotos;
+        DB = normalizar(d);
+        var fin = function(){
+          guardar(); cerrarHoja(); loteAbierto = null; limpiarHash(); irA("conteo");
+          avisar("Respaldo restaurado: " + d.items.length + " insumos y " + DB.lotes.length + " lotes");
+        };
+        if(fotos) FOTOS.poner(fotos, fin); else fin();
+      }catch(e){
+        avisar("Ese archivo no es un respaldo válido");
+      }
+    };
+    lector.readAsText(f);
+  };
+  inp.click();
+}
+
+/* ============================================================
+   15. Acciones
+   ============================================================ */
+
+// Actualiza en sitio, sin re-pintar la lista: así no salta el scroll ni se pierde
+// el resto de la pantalla mientras se recorre la bodega.
+function todoIgual(etk){
+  var b = borrador();
+  activos().filter(function(i){ return i.et === etk; }).forEach(function(i){
+    if(b.v[i.id] == null) b.v[i.id] = ultimoCerrado(i.id);
+    b.r[i.id] = true;
+    var inp = document.querySelector('[data-in="' + i.id + '"]');
+    if(inp) inp.value = b.v[i.id];
+    var fila = document.querySelector('.row[data-id="' + i.id + '"]');
+    if(fila){ fila.classList.add("done"); fila.classList.remove("pend"); }
+    refrescarFila(i.id);
+  });
+  guardar();
+  actualizarContadorEtapa(etk);
+  actualizarProgreso();
+  avisar("Etapa confirmada sin cambios");
+}
+
+function cerrarSemana(){
+  var b = borrador(), tot = activos().length;
+  var listos = activos().filter(function(i){ return b.r[i.id]; }).length;
+  if(listos === 0){ avisar("Todavía no has contado nada."); return; }
+  if(listos < tot){
+    if(!confirm("Te faltan " + (tot - listos) + " insumos por revisar.\n\nLos que no revisaste quedarán con el valor de la semana pasada. ¿Cerrar igual?")) return;
+  }
+  activos().forEach(function(i){
+    if(b.v[i.id] == null) b.v[i.id] = ultimoCerrado(i.id);
+  });
+  b.cerrada = true;
+  b.f = hoyISO();
+  guardar();
+  abiertas = {"1":true};
+  render();
+  avisar("Conteo del " + fechaCorta(b.f) + " guardado");
+}
+
+/* ============================================================
+   16. Eventos
+   ============================================================ */
+
+var VISTAS = ["conteo","lotes","ficha","resumen","insumos"];
+
+function render(){
+  if(vista === "conteo")  pintarConteo();
+  if(vista === "lotes")   pintarLotes();
+  if(vista === "ficha")   pintarFicha();
+  if(vista === "resumen") pintarResumen();
+  if(vista === "insumos") pintarInsumos();
+  document.getElementById("progWrap").hidden = vista !== "conteo";
+  actualizarProgreso();
+}
+
+function irA(t){
+  vista = t;
+  VISTAS.forEach(function(k){
+    document.getElementById("tab-" + k).hidden = k !== t;
+  });
+  // La ficha vive dentro de Lotes: la pestaña sigue encendida mientras se navega.
+  var pest = t === "ficha" ? "lotes" : t;
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(b){
+    b.classList.toggle("on", b.dataset.tab === pest);
+  });
+
+  var l = t === "ficha" ? lotePorId(loteAbierto) : null;
+  var titulos = {conteo:"Inventario", lotes:"Lotes", resumen:"Resumen", insumos:"Insumos"};
+  document.getElementById("hTitle").textContent = l ? l.cod : (titulos[t] || "Inventario");
+  document.getElementById("hSub").textContent   = l ? nomLote(l) : "Hongos del Sur";
+  document.getElementById("hMark").hidden   = t === "ficha";
+  document.getElementById("btnAtras").hidden = t !== "ficha";
+
+  if(t !== "ficha" && location.hash) limpiarHash();
+  window.scrollTo(0,0);
+  render();
+}
+
+function limpiarHash(){
+  if(history.replaceState) history.replaceState(null, "", location.pathname + location.search);
+  else location.hash = "";
+}
+
+// Un QR escaneado llega como  …/#/l/CODIGO  y abre esa ficha.
+function aplicarHash(){
+  var m = /^#\/l\/(.+)$/.exec(location.hash || "");
+  if(!m){
+    if(vista === "ficha") irA("lotes");
+    return;
+  }
+  var cod = decodeURIComponent(m[1]);
+  var l = lotePorCod(cod);
+  if(!l){
+    limpiarHash();
+    irA("lotes");
+    avisar("No hay ningún lote « " + cod + " » en este dispositivo");
+    return;
+  }
+  loteAbierto = l.id;
+  irA("ficha");
+}
+
+function volverDeFicha(){
+  if(location.hash) history.back();
+  else irA("lotes");
+}
+
+document.addEventListener("click", function(ev){
+  var t = ev.target.closest ? ev.target.closest("[data-tab],[data-toggle],[data-same],[data-open],[data-d],[data-edit],[data-save],[data-del],[data-act],[data-close],#btnMenu,#btnCerrar,#btnCopiar,#btnCsvCompra") : null;
+  if(!t) return;
+
+  if(t.dataset.tab){ irA(t.dataset.tab); return; }
+
+  if(t.dataset.toggle){
+    var k = t.dataset.toggle;
+    abiertas[k] = !abiertas[k];
+    t.closest(".stage").classList.toggle("open", abiertas[k]);
+    t.setAttribute("aria-expanded", String(!!abiertas[k]));
+    return;
+  }
+
+  if(t.dataset.same){ todoIgual(t.dataset.same); return; }
+
+  if(t.dataset.open){
+    var fila = t.closest(".row"), yaAbierta = fila.classList.contains("open");
+    Array.prototype.forEach.call(document.querySelectorAll(".row.open"), function(r){ r.classList.remove("open"); });
+    if(!yaAbierta){ fila.classList.add("open"); pintarDetalle(t.dataset.open); }
+    return;
+  }
+
+  if(t.dataset.d){
+    var id = t.dataset.id, it = porId(id);
+    var inp = document.querySelector('[data-in="' + id + '"]');
+    var v = (parseFloat(inp.value) || 0) + Number(t.dataset.d) * paso(it.uni);
+    if(v < 0) v = 0;
+    v = Math.round(v * 100) / 100;
+    inp.value = v;
+    marcar(id, v);
+    return;
+  }
+
+  if(t.dataset.edit){ hojaInsumo(t.dataset.edit); return; }
+  if(t.dataset.save !== undefined && t.hasAttribute("data-save")){ guardarInsumo(t.dataset.save); return; }
+
+  if(t.dataset.del){
+    var d = porId(t.dataset.del);
+    if(confirm("¿Eliminar «" + d.nom + "» y todo su historial?\n\nSi solo dejaste de usarlo, es mejor marcarlo como pausado.")){
+      DB.items = DB.items.filter(function(i){ return i.id !== d.id; });
+      guardar(); cerrarHoja(); render();
+      avisar("Insumo eliminado");
+    }
+    return;
+  }
+
+  if(t.id === "btnMenu"){ hojaMenu(); return; }
+  if(t.id === "btnCerrar"){ cerrarSemana(); return; }
+
+  if(t.id === "btnCopiar"){
+    var txt = textoCompra();
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){ avisar("Lista copiada — pégala en WhatsApp"); },
+                                              function(){ avisar("No se pudo copiar"); });
+    } else { avisar("Este navegador no permite copiar"); }
+    return;
+  }
+  if(t.id === "btnCsvCompra"){ descargar("lista-compra-" + hoyISO() + ".txt", textoCompra(), "text/plain"); return; }
+
+  if(t.dataset.close){ cerrarHoja(); return; }
+
+  var a = t.dataset.act;
+  if(a === "respaldo"){ respaldar(); return; }
+  if(a === "restaurar"){ restaurar(); return; }
+  if(a === "csv"){ descargar("inventario-" + hoyISO() + ".csv", csvInventario(), "text/csv"); return; }
+  if(a === "csvlotes"){
+    if(!DB.lotes.length){ avisar("Todavía no hay lotes que exportar"); return; }
+    descargar("lotes-" + hoyISO() + ".csv", csvLotes(), "text/csv");
+    return;
+  }
+  if(a === "base"){ hojaBase(); return; }
+  if(a === "tema"){
+    var actual = document.documentElement.getAttribute("data-theme");
+    var oscuro = actual ? actual === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var nuevo = oscuro ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", nuevo);
+    try{ localStorage.setItem("hds_tema", nuevo); }catch(e){}
+    cerrarHoja();
+    return;
+  }
+  if(a === "ayuda"){ hojaAyuda(); return; }
+  if(a === "reset"){
+    if(confirm("Esto borra todos los insumos, el historial de conteos y también los lotes con sus fotos.\n\n¿Seguro? Descarga un respaldo antes si tienes dudas.")){
+      DB.lotes.forEach(function(l){
+        l.ev.forEach(function(e){ (e.fotos || []).forEach(function(f){ FOTOS.borrar(f); }); });
+      });
+      DB = semilla(); loteAbierto = null;
+      guardar(); cerrarHoja(); limpiarHash(); irA("conteo");
+      avisar("Todo restablecido");
+    }
+    return;
+  }
+});
+
+/* --- Eventos de la parte de lotes --- */
+
+document.addEventListener("click", function(ev){
+  var t = ev.target.closest ? ev.target.closest("[data-flote],[data-lote],[data-led],[data-lsave],[data-lborrar],[data-lact],[data-lev],[data-esave],[data-eborrar],[data-ver],[data-timp],[data-tqr],#btnAtras,#lupaCerrar,#lupaBorrar") : null;
+  if(!t) return;
+
+  if(t.id === "btnAtras"){ volverDeFicha(); return; }
+  if(t.id === "lupaCerrar"){ document.getElementById("lupa").classList.remove("open"); return; }
+  if(t.id === "lupaBorrar"){ borrarFotoActual(); return; }
+
+  if(t.dataset.flote){ filtroLotes = t.dataset.flote; pintarLotes(); return; }
+  if(t.dataset.lote){ abrirLote(t.dataset.lote); return; }
+  if(t.dataset.led){ hojaLote(t.dataset.led); return; }
+  if(t.hasAttribute("data-lsave")){ guardarLote(t.dataset.lsave); return; }
+  if(t.dataset.ver){ verFoto(t.dataset.ver); return; }
+  if(t.dataset.lev){ hojaEvento(loteAbierto, null, t.dataset.lev); return; }
+  if(t.hasAttribute("data-esave")){ guardarEvento(t.dataset.esave, t.dataset.etipo, t.dataset.eid || null); return; }
+  if(t.dataset.eborrar){ borrarEvento(t.dataset.elote, t.dataset.eborrar); return; }
+
+  if(t.dataset.lborrar){
+    var l = lotePorId(t.dataset.lborrar);
+    if(!l) return;
+    if(confirm("¿Eliminar el lote " + l.cod + " con todo su historial y sus fotos?\n\nSi el lote terminó, es mejor marcarlo como Finalizado.")){
+      l.ev.forEach(function(e){ (e.fotos || []).forEach(function(f){ FOTOS.borrar(f); }); });
+      DB.lotes = DB.lotes.filter(function(x){ return x.id !== l.id; });
+      loteAbierto = null;
+      guardar(); cerrarHoja(); limpiarHash(); irA("lotes");
+      avisar("Lote eliminado");
+    }
+    return;
+  }
+
+  if(t.dataset.timp){
+    var cant = Math.max(1, Math.min(500, Math.round(parseFloat(document.getElementById("t_cant").value) || 1)));
+    imprimirEtiquetas(lotePorId(t.dataset.timp), etiqChica, cant);
+    return;
+  }
+  if(t.dataset.tqr){
+    var lq = lotePorId(t.dataset.tqr);
+    descargar("qr-" + lq.cod + ".svg", QR.svg(urlLote(lq)), "image/svg+xml");
+    return;
+  }
+
+  var a = t.dataset.lact;
+  if(a === "addfoto"){
+    pedirFotos(function(ds){
+      if(!ds.length){ avisar("No se pudo leer la imagen"); return; }
+      fotosPend = fotosPend.concat(ds);
+      pintarPendientes(fotosGuardadasEnHoja());
+      avisar(ds.length + (ds.length === 1 ? " foto lista" : " fotos listas") + " — falta guardar");
+    });
+    return;
+  }
+  if(a === "savebase"){
+    DB.cfg.base = document.getElementById("b_url").value.trim();
+    guardar(); cerrarHoja();
+    avisar(DB.cfg.base ? "Dirección guardada" : "Se usará la dirección desde donde se abra la app");
+    return;
+  }
+  if(a === "etiq"){ hojaEtiqueta(loteAbierto); return; }
+  if(a){ hojaEvento(loteAbierto, a, null); return; }
+});
+
+// Las fotos ya guardadas del evento que se está editando, para volver a pintarlas.
+function fotosGuardadasEnHoja(){
+  var b = document.querySelector("[data-esave]");
+  if(!b || !b.dataset.eid) return [];
+  var l = lotePorId(b.dataset.esave);
+  if(!l) return [];
+  var e = l.ev.filter(function(x){ return x.id === b.dataset.eid; })[0];
+  return e ? (e.fotos || []) : [];
+}
+
+document.addEventListener("change", function(ev){
+  var el = ev.target;
+  if(!el.id) return;
+
+  // Formulario de lote: la especie muestra u oculta el nombre libre y refresca el código.
+  if(el.id === "f_esp" || el.id === "f_finoc" || el.id === "f_otro"){
+    var esp = document.getElementById("f_esp"), wrap = document.getElementById("wrapOtro");
+    if(esp && wrap) wrap.hidden = esp.value !== "OTR";
+    var cod = document.getElementById("f_cod");
+    if(cod && cod.dataset.auto === "1"){
+      var otro = document.getElementById("f_otro");
+      var f = document.getElementById("f_finoc");
+      cod.value = nuevoCodigo(esp.value, f ? f.value : hoyISO(), otro ? otro.value : "");
+    }
+    return;
+  }
+  if(el.id === "t_tam"){
+    etiqChica = el.value === "1";
+    var l = lotePorId(loteAbierto), prev = document.getElementById("etPrev");
+    if(l && prev) prev.innerHTML = etiquetaHTML(l, etiqChica, QR.svg(urlLote(l), "", 2));
+    return;
+  }
+});
+
+document.addEventListener("input", function(ev){
+  var el = ev.target;
+  if(el.id === "f_cod"){ el.dataset.auto = "0"; return; }
+  if(el.dataset && el.dataset.in){
+    var v = parseFloat(el.value);
+    if(el.value === "" || isNaN(v)) return;
+    marcar(el.dataset.in, Math.max(0, v));
+    return;
+  }
+  if(el.dataset && el.dataset.compra){
+    var b = borrador();
+    var c = parseFloat(el.value);
+    b.c[el.dataset.compra] = isNaN(c) ? 0 : Math.max(0, c);
+    guardar();
+    refrescarFila(el.dataset.compra);
+    return;
+  }
+  if(el.id === "buscar"){
+    filtro = el.value;
+    var pos = el.selectionStart;
+    pintarInsumos();
+    var nuevoInp = document.getElementById("buscar");
+    nuevoInp.focus();
+    try{ nuevoInp.setSelectionRange(pos, pos); }catch(e){}
+    return;
+  }
+});
+
+document.addEventListener("change", function(ev){
+  if(ev.target.dataset && ev.target.dataset.in && ev.target.value === ""){
+    ev.target.value = stock(ev.target.dataset.in);
+  }
+});
+
+document.addEventListener("keydown", function(ev){
+  if(ev.key !== "Escape") return;
+  var lupa = document.getElementById("lupa");
+  if(lupa.classList.contains("open")){ lupa.classList.remove("open"); return; }
+  cerrarHoja();
+});
+
+// Volver atrás en el teléfono sale de la ficha en vez de cerrar la app.
+window.addEventListener("hashchange", aplicarHash);
+
+/* ============================================================
+   17. Arranque
+   ============================================================ */
+
+try{
+  var tema = localStorage.getItem("hds_tema");
+  if(tema) document.documentElement.setAttribute("data-theme", tema);
+}catch(e){}
+
+DB = cargar();
+borrador();
+guardar();
+
+// Si la app se abrió desde un QR, se entra directo a la ficha de ese lote.
+if(/^#\/l\//.test(location.hash || "")) aplicarHash();
+else irA("conteo");
+
+})();
+</script>
+
+</body>
+</html>
