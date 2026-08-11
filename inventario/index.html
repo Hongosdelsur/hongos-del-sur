@@ -2713,8 +2713,8 @@ var SYNC = (function(){
     // Lo que estaba sincronizado y ya no está en la app: se borró en este teléfono.
     for(var k in est.huellas){
       if(vistos[k]) continue;
-      if(k.charAt(0) === "L") bajaL.push({id:k.slice(1), borrado:true});
-      else bajaE.push({id:k.slice(1), borrado:true});
+      if(k.charAt(0) === "L") bajaL.push(k.slice(1));
+      else bajaE.push(k.slice(1));
     }
     return {lotes:subirL, evs:subirE, bajaLotes:bajaL, bajaEvs:bajaE};
   }
@@ -2737,14 +2737,31 @@ var SYNC = (function(){
     }, function(err){ cb(err ? err.msg : null); });
   }
 
+  // Las bajas van como actualización, no como «inserta o actualiza»: al insertar,
+  // PostgreSQL arma la fila y exige las columnas obligatorias antes de darse
+  // cuenta de que ya existía, y una baja solo lleva el id.
+  function marcarBorradas(tabla, ids, cb){
+    if(!ids.length){ cb(null); return; }
+    var tanda = ids.slice(0, 60), resto = ids.slice(60);   // la URL tiene largo máximo
+    var lista = tanda.map(function(i){ return '"' + i + '"'; }).join(",");
+    NUBE.rest("/" + tabla + "?id=in.(" + encodeURIComponent(lista) + ")", {
+      metodo:"PATCH",
+      cabeceras:{Prefer:"return=minimal"},
+      cuerpo:{borrado:true}
+    }, function(err){
+      if(err){ cb(err.msg); return; }
+      marcarBorradas(tabla, resto, cb);
+    });
+  }
+
   function subir(c, cb){
     subirTanda("lotes", c.lotes, function(e1){
       if(e1){ cb(e1); return; }
-      subirTanda("lotes", c.bajaLotes, function(e2){
+      subirTanda("eventos", c.evs, function(e2){
         if(e2){ cb(e2); return; }
-        subirTanda("eventos", c.evs, function(e3){
+        marcarBorradas("eventos", c.bajaEvs, function(e3){
           if(e3){ cb(e3); return; }
-          subirTanda("eventos", c.bajaEvs, cb);
+          marcarBorradas("lotes", c.bajaLotes, cb);
         });
       });
     });
