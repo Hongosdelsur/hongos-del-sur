@@ -2306,7 +2306,174 @@ function imprimirEtiquetas(l, chica, cant, numerar){
 }
 
 /* ============================================================
-   13. Hojas modales
+   13. Nube: cuentas y sesión
+   ============================================================
+
+   La nube es opcional: sin sesión iniciada la app funciona igual que siempre,
+   con sus datos en el teléfono. Conectarse agrega el equipo y la copia
+   compartida, nunca la reemplaza.
+
+   Se habla directo con la API de Supabase por fetch, sin librería: son cuatro
+   llamadas y así la app sigue siendo un archivo que carga al instante.
+   La clave `publishable` va a la vista a propósito; sola no sirve para leer
+   nada, porque los permisos viven en el servidor.
+   ============================================================ */
+
+var NUBE = (function(){
+  var URL = "https://unblmguizszfrkudngxm.supabase.co";
+  var KEY = "sb_publishable_PusYpyKWt1pJpeaW-C0I2g_sVQN4iXR";
+  var CLAVE_SES = "hds_sesion_v1";
+  var ses = null, perfil = null;
+
+  function cargar(){
+    try{
+      var crudo = localStorage.getItem(CLAVE_SES);
+      if(crudo) ses = JSON.parse(crudo);
+    }catch(e){ ses = null; }
+    return ses;
+  }
+  function guardarSes(s){
+    ses = s;
+    try{
+      if(s) localStorage.setItem(CLAVE_SES, JSON.stringify(s));
+      else localStorage.removeItem(CLAVE_SES);
+    }catch(e){}
+  }
+  function guardarToken(d){
+    if(!d || !d.access_token) return null;
+    guardarSes({
+      access_token: d.access_token,
+      refresh_token: d.refresh_token,
+      expira: Date.now() + ((d.expires_in || 3600) * 1000),
+      correo: (d.user && d.user.email) || (ses && ses.correo) || "",
+      uid: (d.user && d.user.id) || (ses && ses.uid) || ""
+    });
+    return ses;
+  }
+
+  // El servidor contesta en inglés; la app habla en español.
+  var TRADUCE = [
+    [/invalid login credentials/i,        "Correo o clave incorrectos"],
+    [/user already registered|already been registered/i, "Ese correo ya tiene una cuenta. Entra en vez de crearla."],
+    [/email not confirmed/i,              "Falta confirmar el correo: busca el mensaje en tu bandeja"],
+    [/password should be at least (\d+)/i,"La clave necesita al menos $1 caracteres"],
+    [/unable to validate email|invalid format/i, "Ese correo no tiene un formato válido"],
+    [/signups? not allowed/i,             "El registro está desactivado en el servidor"],
+    [/rate limit|only request this after/i,"Demasiados intentos seguidos. Espera un momento y vuelve a probar."],
+    [/permission denied/i,                "Tu cuenta todavía no tiene permiso para eso"],
+    [/jwt|token/i,                        "La sesión caducó: vuelve a entrar"],
+    [/failed to fetch|networkerror/i,     "Sin conexión"]
+  ];
+  function traducir(msg){
+    var s = String(msg || "");
+    for(var i=0; i<TRADUCE.length; i++){
+      if(TRADUCE[i][0].test(s)) return s.replace(TRADUCE[i][0], TRADUCE[i][1]);
+    }
+    return s;
+  }
+
+  // Todas las respuestas de Supabase vienen en JSON, incluidos los errores.
+  function llamar(ruta, opciones, cb){
+    var o = opciones || {};
+    var cab = {apikey:KEY, "Content-Type":"application/json"};
+    if(o.token) cab.Authorization = "Bearer " + o.token;
+    for(var k in (o.cabeceras || {})) cab[k] = o.cabeceras[k];
+
+    fetch(URL + ruta, {
+      method: o.metodo || "GET",
+      headers: cab,
+      body: o.cuerpo ? JSON.stringify(o.cuerpo) : undefined
+    }).then(function(r){
+      return r.text().then(function(txt){
+        var d = null;
+        try{ d = txt ? JSON.parse(txt) : null; }catch(e){ d = null; }
+        if(!r.ok){
+          var msg = (d && (d.msg || d.message || d.error_description || d.error)) || ("Error " + r.status);
+          cb({estado:r.status, msg:traducir(msg), datos:d}, null);
+          return;
+        }
+        cb(null, d);
+      });
+    }, function(){
+      cb({estado:0, msg:"Sin conexión"}, null);
+    });
+  }
+
+  // Renueva el token si está por vencer y entrega uno válido.
+  function conToken(cb){
+    if(!ses){ cb("Sin sesión", null); return; }
+    if(Date.now() < ses.expira - 60000){ cb(null, ses.access_token); return; }
+    llamar("/auth/v1/token?grant_type=refresh_token", {
+      metodo:"POST", cuerpo:{refresh_token: ses.refresh_token}
+    }, function(err, d){
+      if(err){
+        // Un refresh rechazado significa sesión caducada de verdad.
+        if(err.estado === 400 || err.estado === 401){ guardarSes(null); perfil = null; }
+        cb(err.msg, null);
+        return;
+      }
+      guardarToken(d);
+      cb(null, ses.access_token);
+    });
+  }
+
+  function registrar(correo, clave, nombre, cb){
+    llamar("/auth/v1/signup", {
+      metodo:"POST",
+      cuerpo:{email:correo, password:clave, data:{nombre:nombre}}
+    }, function(err, d){
+      if(err){ cb(err.msg); return; }
+      // Si el proyecto pide confirmar el correo, no llega sesión todavía.
+      if(d && d.access_token){ guardarToken(d); cb(null, "sesion"); }
+      else cb(null, "confirmar");
+    });
+  }
+
+  function entrar(correo, clave, cb){
+    llamar("/auth/v1/token?grant_type=password", {
+      metodo:"POST", cuerpo:{email:correo, password:clave}
+    }, function(err, d){
+      if(err){ cb(err.msg); return; }
+      guardarToken(d);
+      cb(null);
+    });
+  }
+
+  function salir(cb){
+    var t = ses && ses.access_token;
+    guardarSes(null); perfil = null;
+    if(t) llamar("/auth/v1/logout", {metodo:"POST", token:t}, function(){});
+    if(cb) cb();
+  }
+
+  // El perfil trae el rol, que es lo que decide qué se puede ver y hacer.
+  function traerPerfil(cb){
+    conToken(function(err, tok){
+      if(err){ cb(err, null); return; }
+      llamar("/rest/v1/perfiles?select=id,nombre,rol&id=eq." + encodeURIComponent(ses.uid), {token:tok}, function(e2, d){
+        if(e2){ cb(e2.msg, null); return; }
+        perfil = (d && d[0]) || null;
+        cb(null, perfil);
+      });
+    });
+  }
+
+  return {
+    cargar: cargar,
+    sesion: function(){ return ses; },
+    perfil: function(){ return perfil; },
+    rol: function(){ return perfil ? perfil.rol : null; },
+    registrar: registrar,
+    entrar: entrar,
+    salir: salir,
+    traerPerfil: traerPerfil,
+    conToken: conToken,
+    llamar: llamar
+  };
+})();
+
+/* ============================================================
+   14. Hojas modales
    ============================================================ */
 
 function abrirHoja(html){
@@ -2834,6 +3001,107 @@ function hojaEtiqueta(loteId, cant){
   abrirHoja(h);
 }
 
+/* --- Nube: entrar, crear cuenta y ver el rol --- */
+
+var modoNube = "entrar";
+
+var ROLES_TXT = {
+  dueno:      {n:"Dueño",     d:"Ves y administras todo: lotes, inventario, costos y equipo."},
+  produccion: {n:"Producción",d:"Lotes, estados, cosechas, fotos y etiquetas. Sin inventario ni costos."},
+  pendiente:  {n:"Pendiente", d:"Tu cuenta está creada, pero falta que el dueño te dé acceso."},
+  bloqueado:  {n:"Bloqueado", d:"Este acceso fue dado de baja."}
+};
+
+function hojaNube(){
+  var s = NUBE.sesion();
+
+  var h = '<h2 class="sheet__t">Nube y equipo</h2>';
+
+  if(!s){
+    h += '<p class="sheet__d">Por ahora los datos viven solo en este teléfono. Al conectarte, quedan también en la nube: los ves desde cualquier dispositivo y tu equipo puede registrar cosechas.</p>';
+    h += '<div class="chips" style="padding-top:0">';
+    h += '<button class="chip' + (modoNube === "entrar" ? " on" : "") + '" data-nact="modo" data-v="entrar">Ya tengo cuenta</button>';
+    h += '<button class="chip' + (modoNube === "crear" ? " on" : "") + '" data-nact="modo" data-v="crear">Crear cuenta</button>';
+    h += "</div>";
+
+    if(modoNube === "crear"){
+      h += '<div class="field"><label for="n_nom">Tu nombre</label>';
+      h += '<input id="n_nom" autocomplete="name" placeholder="Cómo te ven en el equipo"></div>';
+    }
+    h += '<div class="field"><label for="n_correo">Correo</label>';
+    h += '<input id="n_correo" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="tucorreo@ejemplo.cl"></div>';
+    h += '<div class="field"><label for="n_clave">Clave</label>';
+    h += '<input id="n_clave" type="password" autocomplete="' + (modoNube === "crear" ? "new-password" : "current-password") + '" placeholder="' + (modoNube === "crear" ? "Al menos 6 caracteres" : "Tu clave") + '"></div>';
+
+    h += '<div style="margin-top:6px"><button class="btn btn--primary" data-nact="' + modoNube + '">';
+    h += (modoNube === "crear" ? "Crear mi cuenta" : "Entrar") + "</button></div>";
+    h += '<p class="note">Quien se registra queda a la espera: el dueño le da acceso desde esta misma pantalla. La app sigue funcionando sin conectarse.</p>';
+    abrirHoja(h);
+    return;
+  }
+
+  var p = NUBE.perfil(), rol = p ? p.rol : null;
+  var r = ROLES_TXT[rol] || {n:"Comprobando…", d:"Buscando tu rol en el servidor."};
+
+  h += '<p class="sheet__d">Sesión iniciada como <strong style="color:var(--ink)">' + esc(s.correo) + "</strong></p>";
+  h += '<div class="tile" style="margin-bottom:12px"><div class="tile__k">Tu rol</div>';
+  h += '<div class="tile__v" style="font-size:1.1rem;font-family:var(--f-display)">' + esc(r.n) + "</div>";
+  h += '<div class="tile__s">' + esc(r.d) + "</div></div>";
+
+  if(rol === "pendiente"){
+    h += '<p class="note" style="margin-top:0">Si el dueño eres tú y es la primera cuenta, hay que darse el rol una vez desde el panel de Supabase. Está explicado en <em>nube/LEEME.md</em>.</p>';
+  }
+
+  h += '<div style="margin-top:6px"><button class="btn btn--ghost" data-nact="refrescar">Comprobar de nuevo</button></div>';
+  h += '<div style="margin-top:9px"><button class="btn btn--danger" data-nact="salir">Cerrar sesión</button></div>';
+  h += '<p class="note">Cerrar sesión no borra nada de este teléfono: los datos locales quedan igual.</p>';
+  abrirHoja(h);
+}
+
+function tocarNube(accion){
+  if(accion === "modo") return;
+
+  if(accion === "salir"){
+    NUBE.salir(function(){ hojaNube(); avisar("Sesión cerrada"); });
+    return;
+  }
+  if(accion === "refrescar"){
+    avisar("Comprobando…");
+    NUBE.traerPerfil(function(err){
+      if(err){ avisar(err); return; }
+      hojaNube();
+    });
+    return;
+  }
+
+  var correo = (document.getElementById("n_correo").value || "").trim();
+  var clave  = document.getElementById("n_clave").value || "";
+  if(!correo || correo.indexOf("@") < 0){ avisar("Escribe un correo válido."); return; }
+  if(clave.length < 6){ avisar("La clave necesita al menos 6 caracteres."); return; }
+
+  if(accion === "crear"){
+    var nom = (document.getElementById("n_nom").value || "").trim();
+    if(!nom){ avisar("Escribe tu nombre."); return; }
+    avisar("Creando la cuenta…");
+    NUBE.registrar(correo, clave, nom, function(err, como){
+      if(err){ avisar(err); return; }
+      if(como === "confirmar"){
+        cerrarHoja();
+        avisar("Revisa tu correo y confirma la cuenta para poder entrar");
+        return;
+      }
+      NUBE.traerPerfil(function(){ hojaNube(); avisar("Cuenta creada"); });
+    });
+    return;
+  }
+
+  avisar("Entrando…");
+  NUBE.entrar(correo, clave, function(err){
+    if(err){ avisar(err); return; }
+    NUBE.traerPerfil(function(){ hojaNube(); avisar("Sesión iniciada"); });
+  });
+}
+
 function hojaBase(){
   var h = '<h2 class="sheet__t">Dirección para los códigos QR</h2>';
   h += '<p class="sheet__d">El QR de cada etiqueta guarda una dirección web. Para que al escanear con la cámara se abra la ficha del lote, esa dirección tiene que ser la misma desde donde abres esta app en el teléfono.</p>';
@@ -2847,8 +3115,14 @@ function hojaBase(){
 }
 
 function hojaMenu(){
+  var s = NUBE.sesion(), p = NUBE.perfil();
   var h = '<h2 class="sheet__t">Respaldos y datos</h2>';
-  h += '<p class="sheet__d">Los datos viven solo en este dispositivo. Respalda una vez al mes: si cambias de teléfono o se limpia el navegador, el archivo de respaldo es la única forma de recuperarlos.</p>';
+  h += '<p class="sheet__d">' + (s
+    ? "Los datos siguen guardándose en este dispositivo. Respaldar sigue siendo buena idea hasta que la sincronización esté lista."
+    : "Los datos viven solo en este dispositivo. Respalda una vez al mes: si cambias de teléfono o se limpia el navegador, el archivo de respaldo es la única forma de recuperarlos.") + "</p>";
+
+  h += '<button class="menu__item" data-act="nube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0 .3-9 6.5 6.5 0 0 0-12.5 2A3.9 3.9 0 0 0 6 19Z"/></svg><span>Nube y equipo<small>' +
+    (s ? esc(s.correo) + (p ? " · " + esc((ROLES_TXT[p.rol] || {}).n || p.rol) : "") : "sin conectar — los datos son solo de este teléfono") + "</small></span></button>";
 
   h += '<button class="menu__item" data-act="respaldo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg><span>Descargar respaldo<small>Archivo con todo: insumos e historial</small></span></button>';
   h += '<button class="menu__item" data-act="restaurar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg><span>Restaurar desde respaldo<small>Reemplaza todo lo que hay ahora</small></span></button>';
@@ -2882,7 +3156,7 @@ function hojaAyuda(){
 }
 
 /* ============================================================
-   14. Exportar / importar
+   15. Exportar / importar
    ============================================================ */
 
 // Dos caminos: en claude.ai se usa el diálogo del visor; abierto como archivo
@@ -3033,7 +3307,7 @@ function restaurar(){
 }
 
 /* ============================================================
-   15. Acciones
+   16. Acciones
    ============================================================ */
 
 // Actualiza en sitio, sin re-pintar la lista: así no salta el scroll ni se pierde
@@ -3074,7 +3348,7 @@ function cerrarSemana(){
 }
 
 /* ============================================================
-   16. Eventos
+   17. Eventos
    ============================================================ */
 
 var VISTAS = ["conteo","lotes","ficha","resumen","insumos"];
@@ -3215,6 +3489,7 @@ document.addEventListener("click", function(ev){
     return;
   }
   if(a === "base"){ hojaBase(); return; }
+  if(a === "nube"){ hojaNube(); return; }
   if(a === "tema"){
     var actual = document.documentElement.getAttribute("data-theme");
     var oscuro = actual ? actual === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -3241,9 +3516,14 @@ document.addEventListener("click", function(ev){
 /* --- Eventos de la parte de lotes --- */
 
 document.addEventListener("click", function(ev){
-  var t = ev.target.closest ? ev.target.closest("[data-flote],[data-lote],[data-led],[data-lsave],[data-lborrar],[data-lact],[data-lev],[data-esave],[data-eborrar],[data-ver],[data-timp],[data-tqr],[data-lbolsa],[data-lgrupo],[data-bfin],[data-bsave],[data-bdesc],[data-bundesc],#btnAtras,#lupaCerrar,#lupaBorrar") : null;
+  var t = ev.target.closest ? ev.target.closest("[data-flote],[data-lote],[data-led],[data-lsave],[data-lborrar],[data-lact],[data-lev],[data-esave],[data-eborrar],[data-ver],[data-timp],[data-tqr],[data-lbolsa],[data-lgrupo],[data-bfin],[data-bsave],[data-bdesc],[data-bundesc],[data-nact],#btnAtras,#lupaCerrar,#lupaBorrar") : null;
   if(!t) return;
 
+  if(t.dataset.nact){
+    if(t.dataset.nact === "modo"){ modoNube = t.dataset.v; hojaNube(); return; }
+    tocarNube(t.dataset.nact);
+    return;
+  }
   if(t.dataset.lbolsa){ hojaBolsa(loteAbierto, t.dataset.lbolsa); return; }
   if(t.dataset.lgrupo){ hojaBolsas(loteAbierto, t.dataset.lgrupo, t.dataset.lol); return; }
   if(t.hasAttribute("data-bfin")){ cerrarHoja(); render(); return; }
@@ -3401,7 +3681,7 @@ document.addEventListener("keydown", function(ev){
 window.addEventListener("hashchange", aplicarHash);
 
 /* ============================================================
-   17. Arranque
+   18. Arranque
    ============================================================ */
 
 try{
@@ -3412,6 +3692,9 @@ try{
 DB = cargar();
 borrador();
 guardar();
+
+// Si había sesión, se recupera el rol por detrás: la app no espera al servidor.
+if(NUBE.cargar()) NUBE.traerPerfil(function(){});
 
 // Si la app se abrió desde un QR, se entra directo a la ficha de ese lote.
 if(/^#\/l\//.test(location.hash || "")) aplicarHash();

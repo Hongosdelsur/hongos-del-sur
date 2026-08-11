@@ -6,7 +6,7 @@
    Al publicar una versión nueva de la app, subir CACHE una unidad.
    ============================================================ */
 
-var CACHE = "hds-inv-v2";
+var CACHE = "hds-inv-v3";
 var BASE = [
   "./",
   "./manifest.json",
