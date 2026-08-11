@@ -779,6 +779,61 @@ select.in{
   html[data-print="cot"] .dtwrap{overflow:visible}
 }
 
+/* ============================================================
+   Costos y precios
+   Reutiliza .stage, .card, .tile, .field, .chip y .btn. Sólo agrega lo suyo:
+   la fila de línea de receta, la cifra grande y las tablas de precios.
+   ============================================================ */
+
+.knav{display:flex;gap:7px;overflow-x:auto;padding:12px 2px 3px;margin:0 -2px}
+
+/* Cifra grande: el costo por kilo es lo primero que hay que ver */
+.khero{background:var(--cream);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;margin-top:12px;box-shadow:var(--shadow)}
+.khero__k{font-family:var(--f-mono);font-size:.6rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint)}
+.khero__v{font-family:var(--f-mono);font-size:2.05rem;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.03em;line-height:1;margin-top:8px}
+.khero__s{font-size:.79rem;color:var(--ink-faint);margin-top:8px;line-height:1.5}
+.khero--ok .khero__v{color:var(--ok)}
+.khero--crit .khero__v{color:var(--crit)}
+
+/* Línea de receta dentro de una etapa */
+.krow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line-soft);padding:10px 14px}
+.krow:hover{background:var(--sand)}
+.krow__t{flex:1;min-width:0}
+.krow__n{display:block;font-size:.89rem;font-weight:500;line-height:1.3}
+.krow__m{display:block;font-family:var(--f-mono);font-size:.66rem;color:var(--ink-faint);margin-top:3px;line-height:1.4}
+.krow__c{flex:none;text-align:right;font-family:var(--f-mono);font-size:.88rem;font-weight:700;font-variant-numeric:tabular-nums}
+.krow__c small{display:block;font-size:.6rem;font-weight:400;color:var(--ink-faint);letter-spacing:.03em}
+.krow--eta .krow__n{color:var(--earth)}
+.krow--falta .krow__c{color:var(--crit)}
+
+.ktot{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:11px 14px;border-top:1px solid var(--line);font-family:var(--f-mono);font-size:.74rem;color:var(--ink-soft)}
+.ktot b{font-size:1rem;color:var(--ink);font-variant-numeric:tabular-nums;font-weight:700}
+.kadd{display:flex;flex-wrap:wrap;gap:7px;padding:11px 14px 13px;border-top:1px solid var(--line-soft)}
+.kadd button{border:1px dashed var(--line);background:none;color:var(--ink-soft);border-radius:99px;padding:6px 12px;font-size:.75rem}
+.kadd button:hover{border-style:solid;border-color:var(--accent);color:var(--accent)}
+.stage.apagada{opacity:.55}
+
+/* Avisos: lo que falta para que el número sea de verdad */
+.kaviso{border:1px solid var(--warn-bg);background:var(--warn-bg);border-radius:var(--r);padding:11px 13px;margin-top:12px;font-size:.81rem;color:var(--warn);line-height:1.5}
+.kaviso b{font-weight:700}
+.kaviso button{background:none;border:0;padding:0;color:inherit;text-decoration:underline;text-underline-offset:3px;font-size:.81rem}
+
+/* Precio de un insumo, editable en la misma lista */
+.kpre{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.kpre:first-child{border-top:0}
+.kpre__t{flex:1;min-width:0}
+.kpre__n{font-size:.88rem;font-weight:500;line-height:1.3}
+.kpre__m{font-family:var(--f-mono);font-size:.65rem;color:var(--ink-faint);margin-top:3px}
+.kpre input{width:104px;height:38px;flex:none;border:1px solid var(--line);border-radius:10px;background:var(--cream);padding:0 11px;text-align:right;font-family:var(--f-mono);font-size:.88rem;font-variant-numeric:tabular-nums}
+
+/* Tablas de la vista Costo y Precios */
+.kt{width:100%;border-collapse:collapse;font-family:var(--f-mono);font-size:.74rem;font-variant-numeric:tabular-nums}
+.kt th{text-align:left;font-weight:600;font-size:.57rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);padding:0 0 7px}
+.kt td{padding:7px 0;border-top:1px solid var(--line-soft);vertical-align:top}
+.kt td:nth-child(n+2),.kt th:nth-child(n+2){text-align:right;white-space:nowrap;padding-left:8px}
+.kt tr.fuerte td{font-weight:700;border-top:1px solid var(--line);color:var(--ink)}
+.kt small{display:block;font-family:var(--f-body);font-size:.68rem;color:var(--ink-faint);letter-spacing:0}
+
 /* ---------- Varios ---------- */
 .empty{text-align:center;padding:34px 20px;color:var(--ink-faint);font-size:.86rem;line-height:1.6}
 .empty svg{width:32px;height:32px;margin-bottom:11px;opacity:.5}
@@ -797,6 +852,12 @@ h1,h2,h3,p,table{margin:0}
 @media (min-width:560px){
   .tiles{grid-template-columns:repeat(4,1fr)}
   .row__nom{font-size:.97rem}
+}
+/* Con seis pestañas abajo, en pantallas angostas el rótulo se achica antes de cortarse. */
+@media (max-width:389px){
+  .tab span{font-size:.58rem}
+  .tab svg{width:19px;height:19px}
+  .tab{padding:9px 2px 11px}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms !important;transition-duration:.01ms !important}
@@ -843,6 +904,14 @@ h1,h2,h3,p,table{margin:0}
     <div id="cot-hist" hidden></div>
     <div id="cot-ajustes" hidden></div>
   </section>
+  <section id="tab-costos" hidden>
+    <div class="knav" id="cosNav"></div>
+    <div id="cos-etapas"></div>
+    <div id="cos-insumos" hidden></div>
+    <div id="cos-costo" hidden></div>
+    <div id="cos-precios" hidden></div>
+    <div id="cos-ajustes" hidden></div>
+  </section>
 </main>
 
 <nav class="tabs" aria-label="Secciones">
@@ -867,6 +936,10 @@ h1,h2,h3,p,table{margin:0}
     <button class="tab" data-tab="cotiza">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5M9 13h6M9 17h4"/></svg>
       <span>Cotizar</span>
+    </button>
+    <button class="tab" data-tab="costos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17.5 6.5H9.8a2.8 2.8 0 0 0 0 5.6h4.4a2.8 2.8 0 0 1 0 5.6H6"/></svg>
+      <span>Costos</span>
     </button>
   </div>
 </nav>
@@ -1150,6 +1223,9 @@ function avisar(msg){
 
 function activos(){ return DB.items.filter(function(i){ return !i.off; }); }
 function porId(id){ return DB.items.filter(function(i){ return i.id === id; })[0]; }
+// Los módulos con cierre propio (COT, COS) le ponen `DB` a lo suyo y tapan
+// éste: para llegar a los lotes desde adentro tienen que pasar por acá.
+function invLotes(){ return (DB && DB.lotes) || []; }
 function etapaDe(k){ return ETAPAS.filter(function(e){ return e.k === k; })[0] || ETAPAS[5]; }
 
 /* ============================================================
@@ -5458,10 +5534,1569 @@ var COT = (function(){
 })();
 
 /* ============================================================
-   19. Eventos
+   19. Costos y precios
+   ============================================================
+
+   Responde una sola pregunta: cuánto cuesta de verdad un kilo de hongo,
+   para poder ponerle precio sin quemar el margen.
+
+   Tres piezas:
+
+   1. INSUMOS. Cada uno se anota como se compra —formato, cantidad y precio—
+      y de ahí sale el costo por gramo, por mililitro o por unidad. Comprar
+      500 g de agar y usar 10 g cuesta 10 g, no 500. Los reutilizables
+      (frascos Duran, placas de vidrio, la Wenbox) se cargan por uso:
+      precio ÷ usos que aguantan. Con 0 usos no se reparten en el costo y
+      quedan sólo como inversión, que es lo que pasa con una caja que dura
+      para siempre.
+
+   2. ETAPAS. Cada una es una receta: cuánto rinde una tanda y qué consume.
+      Una línea puede ser un insumo, la salida de otra etapa (12 placas → 20
+      frascos → 8 bolsas de spawn → 30 bolsas inoculadas → kilos), consumo
+      eléctrico o un monto suelto. Las cantidades van «por tanda» o «por cada
+      unidad producida», que es como se habla: 7,3 kg de trigo por tanda,
+      825 g de pellet por bolsa.
+
+   3. LA CADENA. El costo de cada etapa arrastra el de las anteriores, y la
+      merma de cada una encarece lo que sobrevive. Las horas se propagan
+      igual que los pesos: al final se sabe cuántas horas lleva un kilo, y
+      con eso cuánto vale la hora si el sueldo del mes tiene que salir de ahí.
+
+   Los gastos fijos (internet, agua) no se reparten por tanda sino por kilo
+   del mes, que es lo único honesto: si produce el doble, pesan la mitad.
+
+   100 % local (`hds_cos_v1`), fuera de SYNC, y la pestaña sólo existe para
+   el dueño. Prefijo propio `data-k*` para no chocar con el inventario
+   (`data-d`, `data-act`…), los lotes (`data-lact`) ni el cotizador (`data-c*`).
    ============================================================ */
 
-var VISTAS = ["conteo","lotes","ficha","resumen","insumos","cotiza"];
+var COS = (function(){
+  "use strict";
+
+  var CLAVE = "hds_cos_v1";
+  var DB = null, sub = "etapas", abierta = {"4":true}, filtroIns = "";
+
+  /* ---------- Unidades ----------
+     La conversión sólo ocurre dentro de la misma familia: gramos con kilos,
+     mililitros con litros. Así se compra un saco de 15 kg y se gastan 825 g
+     sin que nadie tenga que dividir a mano. */
+
+  var UNIS = [
+    {u:"g",      fam:"m", f:1},
+    {u:"kg",     fam:"m", f:1000},
+    {u:"ml",     fam:"v", f:1},
+    {u:"L",      fam:"v", f:1000},
+    {u:"unidad", fam:"u", f:1},
+    {u:"par",    fam:"u", f:1},
+    {u:"rollo",  fam:"u", f:1},
+    {u:"caja",   fam:"u", f:1},
+    {u:"sobre",  fam:"u", f:1},
+    {u:"cm",     fam:"l", f:1},
+    {u:"m",      fam:"l", f:100}
+  ];
+  function uni(u){
+    for(var i=0;i<UNIS.length;i++) if(UNIS[i].u === u) return UNIS[i];
+    return UNIS[4];
+  }
+  function familia(u){ return uni(u).fam; }
+  function unisDe(u){
+    var f = familia(u);
+    return UNIS.filter(function(x){ return x.fam === f; });
+  }
+
+  /* ---------- Catálogo inicial ----------
+     [nombre, tipo, cantidad del formato, unidad, precio, usos]
+     tipo "con" se consume · "reu" se reutiliza (usos 0 = no se reparte) */
+
+  var INSUMOS = [
+    ["Agar-agar","con",500,"g",0,0],
+    ["Extracto de malta","con",1000,"g",0,0],
+    ["Peptona","con",500,"g",0,0],
+    ["Cepa o variedad de hongo","con",1,"unidad",0,0],
+    ["Placa de Petri de vidrio borosilicato","reu",1,"unidad",0,100],
+    ["Frasco borosilicato Duran 500 ml","reu",1,"unidad",0,200],
+    ["Frasco borosilicato Duran 1000 ml","reu",1,"unidad",0,200],
+    ["Bisturí (mango)","reu",1,"unidad",0,500],
+    ["Hojas de bisturí Nº11","con",100,"unidad",0,0],
+
+    ["Frasco conservero 500 ml con tapa modificada","reu",1,"unidad",0,50],
+    ["Frasco conservero 250 ml con tapa modificada","reu",1,"unidad",0,50],
+    ["Papel aluminio","con",1,"rollo",0,0],
+    ["Jeringa 20 ml","reu",1,"unidad",0,10],
+    ["Jeringa 10 ml","reu",1,"unidad",0,10],
+    ["Aguja 16G de pulgada y media","con",100,"unidad",0,0],
+    ["Imán para agitación magnética","reu",1,"unidad",0,500],
+
+    ["Grano de trigo","con",25,"kg",12000,0],
+    ["Bolsa mushbag 18x50 0.06","con",100,"unidad",0,0],
+    ["Caja Wenbox 28 L","reu",1,"unidad",0,0],
+    ["Caja Wenbox 61 L","reu",1,"unidad",0,0],
+    ["Malla para estilar","reu",1,"unidad",0,0],
+
+    ["Bolsa mushbag 32x50 0.06","con",100,"unidad",0,0],
+    ["Pellet de pino Ecomas","con",15,"kg",0,0],
+    ["Afrechillo de trigo","con",25,"kg",0,0],
+    ["Cinta de papel","con",1,"rollo",0,0],
+    ["Agua","con",1000,"L",0,0],
+
+    ["Marcador permanente","reu",1,"unidad",0,300],
+    ["Cofia","con",100,"unidad",0,0],
+    ["Caja de cartón para despacho","con",25,"unidad",0,0],
+
+    ["Alcohol isopropílico 70%","con",5,"L",0,0],
+    ["Toalla de papel","con",1,"rollo",0,0],
+    ["Guantes de nitrilo","con",100,"par",0,0],
+    ["Mascarillas","con",50,"unidad",0,0],
+    ["Bolsa zip metalizada","con",100,"unidad",0,0],
+
+    ["Humidificador ultrasónico 400 W","reu",1,"unidad",0,0],
+    ["Extractor de aire 25 W","reu",1,"unidad",0,0],
+    ["Calefactor 700 W","reu",1,"unidad",0,0],
+    ["Deshidratadora 700 W","reu",1,"unidad",0,0]
+  ];
+
+  /* Las siete etapas más el deshidratado, con las cantidades reales.
+     Líneas:  ["i", insumo, cantidad, unidad, porUnidad]
+              ["e", etapa,  cantidad, porUnidad, «1 cada N»]
+              ["l", equipo, watts, horas al día, días, % encendido]
+              ["o", nombre, monto, porUnidad] */
+
+  var ETAPAS_DEF = [
+    {k:"1", n:"Aislación de cepa en agar", d:"Placas madre a partir de una cepa", uni:"placas", rinde:12, horas:2, lin:[
+      ["i","Agar-agar",10,"g",false],
+      ["i","Extracto de malta",10,"g",false],
+      ["i","Peptona",1,"g",false],
+      ["i","Cepa o variedad de hongo",1,"unidad",false],
+      ["i","Frasco borosilicato Duran 1000 ml",1,"unidad",false],
+      ["i","Frasco borosilicato Duran 500 ml",1,"unidad",false],
+      ["i","Placa de Petri de vidrio borosilicato",1,"unidad",true],
+      ["i","Bisturí (mango)",1,"unidad",false],
+      ["i","Hojas de bisturí Nº11",1,"unidad",false],
+      ["i","Alcohol isopropílico 70%",100,"ml",false],
+      ["i","Toalla de papel",0.1,"rollo",false],
+      ["i","Guantes de nitrilo",1,"par",false]
+    ]},
+    {k:"2", n:"Cultivo líquido", d:"Frascos inoculados con un trozo de placa", uni:"frascos", rinde:20, horas:2, lin:[
+      ["e","1",1,false,false],
+      ["i","Extracto de malta",20,"g",true],
+      ["i","Peptona",1,"g",true],
+      ["i","Frasco conservero 500 ml con tapa modificada",1,"unidad",true],
+      ["i","Imán para agitación magnética",1,"unidad",true],
+      ["i","Papel aluminio",0.2,"rollo",false],
+      ["i","Jeringa 20 ml",1,"unidad",false],
+      ["i","Aguja 16G de pulgada y media",1,"unidad",false],
+      ["i","Alcohol isopropílico 70%",200,"ml",false],
+      ["i","Toalla de papel",0.1,"rollo",false],
+      ["i","Guantes de nitrilo",2,"par",false]
+    ]},
+    {k:"3", n:"Grano miceliado (spawn)", d:"Trigo hidratado, esterilizado e inoculado", uni:"bolsas de spawn", rinde:8, horas:3, lin:[
+      ["e","2",0.04,false,true],
+      ["i","Grano de trigo",7.3,"kg",false],
+      ["i","Bolsa mushbag 18x50 0.06",1,"unidad",true],
+      ["i","Caja Wenbox 28 L",1,"unidad",false],
+      ["i","Malla para estilar",1,"unidad",false],
+      ["i","Alcohol isopropílico 70%",100,"ml",false],
+      ["i","Toalla de papel",0.05,"rollo",false],
+      ["i","Guantes de nitrilo",1,"par",false]
+    ]},
+    {k:"4", n:"Bolsas de sustrato", d:"Pellet, afrechillo y agua en mushbag", uni:"bolsas", rinde:30, horas:4, lin:[
+      ["i","Pellet de pino Ecomas",825,"g",true],
+      ["i","Afrechillo de trigo",165,"g",true],
+      ["i","Agua",1.6,"L",true],
+      ["i","Bolsa mushbag 32x50 0.06",1,"unidad",true],
+      ["i","Cinta de papel",0.01,"rollo",true]
+    ]},
+    {k:"5", n:"Inoculación de bolsas", d:"250 g de spawn por bolsa de sustrato", uni:"bolsas inoculadas", rinde:30, horas:2, lin:[
+      ["e","4",1,true,false],
+      ["e","3",0.2,true,true],
+      ["i","Alcohol isopropílico 70%",500,"ml",false],
+      ["i","Toalla de papel",0.2,"rollo",false],
+      ["i","Guantes de nitrilo",2,"par",false],
+      ["i","Mascarillas",2,"unidad",false],
+      ["i","Marcador permanente",1,"unidad",false]
+    ]},
+    {k:"6", n:"Fructificación", d:"Cámara: humedad, aire, luz y calor", uni:"kg de hongo fresco", rinde:15, horas:6, lin:[
+      ["e","5",30,false,false],
+      ["l","Humidificador ultrasónico",400,24,14,33],
+      ["l","Extractor de aire",25,24,14,100],
+      ["l","Iluminación LED",40,9,14,100],
+      ["l","Calefactor",700,3,14,100]
+    ]},
+    {k:"7", n:"Cosecha y envasado", d:"Cortar, limpiar y encajonar", uni:"kg listos para vender", rinde:15, horas:3, lin:[
+      ["e","6",1,true,false],
+      ["i","Guantes de nitrilo",2,"par",false],
+      ["i","Mascarillas",2,"unidad",false],
+      ["i","Cofia",2,"unidad",false],
+      ["i","Caja de cartón para despacho",0.2,"unidad",true]
+    ]},
+    {k:"8", n:"Deshidratado", d:"14 horas de máquina · 10 kg frescos dan 1 kg seco", uni:"kg deshidratados", rinde:1, horas:1, lin:[
+      ["e","7",10,true,false],
+      ["l","Deshidratadora",700,14,1,100],
+      ["i","Bolsa zip metalizada",10,"unidad",true]
+    ]}
+  ];
+
+  var SUBS = [
+    {k:"etapas",  n:"Etapas"},
+    {k:"insumos", n:"Insumos"},
+    {k:"costo",   n:"Costo"},
+    {k:"precios", n:"Precios"},
+    {k:"ajustes", n:"Ajustes"}
+  ];
+
+  /* ---------- Estado y persistencia ---------- */
+
+  function nuevoId(){ return "k" + Math.random().toString(36).slice(2,9); }
+
+  function semilla(){
+    var ins = INSUMOS.map(function(s){
+      return {id:nuevoId(), nom:s[0], tipo:s[1], fCant:s[2], fUni:s[3], precio:s[4], usos:s[5]||0, prov:""};
+    });
+    function idDe(nom){
+      for(var i=0;i<ins.length;i++) if(ins[i].nom === nom) return ins[i].id;
+      return "";
+    }
+    var eta = ETAPAS_DEF.map(function(e){
+      return {
+        k:e.k, n:e.n, d:e.d, uni:e.uni, rinde:e.rinde, horas:e.horas, perdida:0,
+        lin:e.lin.map(function(l){
+          if(l[0] === "i") return {t:"i", id:idDe(l[1]), cant:l[2], uni:l[3], pu:!!l[4]};
+          if(l[0] === "e") return {t:"e", ek:l[1], cant:l[2], pu:!!l[3], alc:!!l[4]};
+          if(l[0] === "l") return {t:"l", n:l[1], w:l[2], hDia:l[3], dias:l[4], duty:l[5]};
+          return {t:"o", n:l[1], m:l[2], pu:!!l[3]};
+        })
+      };
+    });
+    return {
+      v:1, ins:ins, eta:eta,
+      cfg:{
+        kwh:160,
+        fijos:[{n:"Internet", m:14990},{n:"Agua", m:15000}],
+        sueldo:553553,
+        modoHora:"sueldo",
+        valorHora:3000,
+        bolsasMes:120,
+        etapaPlan:"5",
+        iva:19,
+        finFresco:"7",
+        finSeco:"8",
+        mMin:45,
+        mMay:30,
+        netear:false
+      }
+    };
+  }
+
+  function cargar(){
+    try{
+      var raw = localStorage.getItem(CLAVE);
+      if(raw){
+        var d = JSON.parse(raw);
+        if(d && d.ins && d.eta && d.cfg) return normalizar(d);
+      }
+    }catch(e){}
+    return semilla();
+  }
+
+  // Los respaldos viejos pueden venir sin campos nuevos: se completan al cargar.
+  function normalizar(d){
+    var base = semilla().cfg;
+    for(var k in base) if(d.cfg[k] === undefined) d.cfg[k] = base[k];
+    if(!Array.isArray(d.cfg.fijos)) d.cfg.fijos = [];
+    d.eta.forEach(function(e){ if(!Array.isArray(e.lin)) e.lin = []; });
+    return d;
+  }
+
+  function guardar(){
+    try{ localStorage.setItem(CLAVE, JSON.stringify(DB)); }
+    catch(e){ avisar("No se pudo guardar en este navegador"); }
+  }
+
+  /* ---------- Números ---------- */
+
+  function miles(n){
+    var s = String(Math.abs(Math.round(n)));
+    return (n < 0 ? "-" : "") + s.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+  function clp(n){ return "$" + miles(n || 0); }
+  // Bajo mil peso el redondeo esconde la diferencia: ahí se muestran decimales.
+  function clpFino(n){
+    n = Number(n) || 0;
+    if(Math.abs(n) >= 100 || n === 0) return clp(n);
+    var d = Math.abs(n) >= 10 ? 1 : 2;
+    return "$" + (Math.round(n * Math.pow(10,d)) / Math.pow(10,d)).toString().replace(".", ",");
+  }
+  function cifra(n, dec){
+    n = Number(n) || 0;
+    var p = Math.pow(10, dec == null ? 2 : dec);
+    var r = Math.round(n * p) / p;
+    var s = String(Math.abs(r)).split(".");
+    return (r < 0 ? "-" : "") + miles(Number(s[0])) + (s[1] ? "," + s[1] : "");
+  }
+  function pct(n){ return cifra(n, 1) + "%"; }
+  // Acepta lo que se escribe de verdad: 13000, 13.000, $13.000, 2,5 y 2.5.
+  function aNum(s){
+    s = String(s == null ? "" : s).replace(/[\s$%]/g,"");
+    if(s.indexOf(",") >= 0) s = s.replace(/\./g,"").replace(",",".");
+    else if(/^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g,"");
+    var n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+  }
+  function val(id){ var e = document.getElementById(id); return e ? e.value : ""; }
+  function nval(id){ return aNum(val(id)); }
+
+  /* ---------- Búsquedas ---------- */
+
+  function insPorId(id){
+    for(var i=0;i<DB.ins.length;i++) if(DB.ins[i].id === id) return DB.ins[i];
+    return null;
+  }
+  function etaPorK(k){
+    for(var i=0;i<DB.eta.length;i++) if(DB.eta[i].k === k) return DB.eta[i];
+    return null;
+  }
+  function nomIns(id){ var it = insPorId(id); return it ? it.nom : "insumo borrado"; }
+  function nomEta(k){ var e = etaPorK(k); return e ? e.n : "etapa borrada"; }
+
+  /* ---------- Costo de un insumo ----------
+     costoBase = precio del formato ÷ cantidad del formato, en la unidad chica
+     de su familia (gramo, mililitro, unidad). Los reutilizables además se
+     dividen por los usos que aguantan. Con `netear`, el IVA de la compra se
+     descuenta porque vuelve como crédito fiscal. */
+
+  function costoBase(it){
+    var q = (Number(it.fCant)||0) * uni(it.fUni).f;
+    if(!q) return 0;
+    var p = Number(it.precio)||0;
+    if(DB.cfg.netear) p = p / (1 + (Number(DB.cfg.iva)||0)/100);
+    return p / q;
+  }
+  function costoUso(it){
+    var c = costoBase(it);
+    if(it.tipo !== "reu") return c;
+    var u = Number(it.usos)||0;
+    return u > 0 ? c / u : 0;
+  }
+  function costoLinea(it, cant, u){
+    if(!it) return 0;
+    var f = familia(u) === familia(it.fUni) ? uni(u).f : uni(it.fUni).f;
+    return (Number(cant)||0) * f * costoUso(it);
+  }
+  function kwhLinea(l){
+    return ((Number(l.w)||0)/1000) * (Number(l.hDia)||0) * (Number(l.dias)||0) * ((Number(l.duty)||0)/100);
+  }
+  // Cantidad por tanda: las líneas «por unidad» se multiplican por el rinde.
+  function cantTanda(l, e){
+    var c = Number(l.cant)||0;
+    return l.pu ? c * (Number(e.rinde)||0) : c;
+  }
+  function rindeEf(e){
+    return (Number(e.rinde)||0) * (1 - (Number(e.perdida)||0)/100);
+  }
+
+  /* ---------- La cadena ----------
+     Cada etapa devuelve su costo por unidad separado en insumos, electricidad
+     y otros, más las horas y cuántas unidades de cada etapa anterior hicieron
+     falta. Al consumir una etapa se arrastra todo eso multiplicado por la
+     cantidad, así el desglose final sigue sumando el total. La mano de obra
+     no entra aquí: se valoriza al final, cuando ya se sabe cuántas horas
+     lleva un kilo y cuánto tiene que valer la hora. */
+
+  function cadena(){
+    var memo = {}, pila = {}, tarifa = Number(DB.cfg.kwh)||0;
+
+    function etapa(k){
+      if(memo[k]) return memo[k];
+      var e = etaPorK(k);
+      var r = {ins:0, luz:0, otr:0, hor:0, req:{}, ok:!!e, ciclo:false, sinRinde:false};
+      if(!e){ memo[k] = r; return r; }
+      if(pila[k]){ r.ciclo = true; return r; }          // sin memo: el ciclo es del camino
+      pila[k] = 1;
+
+      e.lin.forEach(function(l){
+        var c = cantTanda(l, e);
+        if(l.t === "i"){
+          var it = insPorId(l.id);
+          r.ins += costoLinea(it, c, l.uni || (it ? it.fUni : "unidad"));
+        }else if(l.t === "l"){
+          r.luz += kwhLinea(l) * tarifa;
+        }else if(l.t === "o"){
+          r.otr += (Number(l.m)||0) * (l.pu ? (Number(e.rinde)||0) : 1);
+        }else if(l.t === "e"){
+          var s = etapa(l.ek);
+          if(s.ciclo){ r.ciclo = true; return; }
+          r.ins += c * s.ins;
+          r.luz += c * s.luz;
+          r.otr += c * s.otr;
+          r.hor += c * s.hor;
+          r.req[l.ek] = (r.req[l.ek]||0) + c;
+          for(var kk in s.req) r.req[kk] = (r.req[kk]||0) + c * s.req[kk];
+        }
+      });
+      r.hor += Number(e.horas)||0;
+
+      var ef = rindeEf(e);
+      if(ef > 0){
+        r.ins /= ef; r.luz /= ef; r.otr /= ef; r.hor /= ef;
+        for(var k2 in r.req) r.req[k2] = r.req[k2] / ef;
+      }else{
+        r.sinRinde = true;
+        r.ins = r.luz = r.otr = r.hor = 0; r.req = {};
+      }
+
+      delete pila[k];
+      memo[k] = r;
+      return r;
+    }
+
+    DB.eta.forEach(function(e){ etapa(e.k); });
+    return memo;
+  }
+
+  /* Todo lo que se muestra sale de acá: un solo cálculo por pintada. */
+  function calcular(){
+    var C = cadena(), cfg = DB.cfg;
+    var F = C[cfg.finFresco] || {ins:0,luz:0,otr:0,hor:0,req:{}};
+    var S = C[cfg.finSeco]   || {ins:0,luz:0,otr:0,hor:0,req:{}};
+
+    // Plan del mes: se anota en bolsas inoculadas, que es lo que se controla.
+    var porKg = F.req[cfg.etapaPlan] || 0;            // bolsas necesarias para un kilo
+    var kgMes = porKg > 0 ? (Number(cfg.bolsasMes)||0) / porKg : 0;
+
+    var horasKg  = F.hor;
+    var horasMes = horasKg * kgMes;
+    var sueldo   = Number(cfg.sueldo)||0;
+    var valorHora = cfg.modoHora === "fijo"
+      ? (Number(cfg.valorHora)||0)
+      : (horasMes > 0 ? sueldo / horasMes : 0);
+
+    var fijosMes = 0;
+    (cfg.fijos||[]).forEach(function(g){ fijosMes += Number(g.m)||0; });
+    var fijoKg = kgMes > 0 ? fijosMes / kgMes : 0;
+
+    function producto(R, factorFresco){
+      var directo = R.ins + R.luz + R.otr;
+      var mano = R.hor * valorHora;
+      var fijo = fijoKg * factorFresco;
+      return {
+        ins:R.ins, luz:R.luz, otr:R.otr, hor:R.hor,
+        directo:directo, mano:mano, fijo:fijo,
+        total:directo + mano + fijo
+      };
+    }
+
+    var fresco = producto(F, 1);
+    var seco   = producto(S, S.req[cfg.finFresco] || 0);
+
+    // Cuántas tandas de cada etapa exige el plan, y de ahí el gasto mensual
+    // en cada insumo: la misma cadena sirve como lista de compras.
+    var tandas = {}, gastoIns = {}, usoIns = {};
+    DB.eta.forEach(function(e){
+      var u = (e.k === cfg.finFresco ? 1 : (F.req[e.k] || 0)) * kgMes;
+      var ef = rindeEf(e);
+      tandas[e.k] = ef > 0 ? u / ef : 0;
+    });
+    DB.eta.forEach(function(e){
+      var t = tandas[e.k] || 0;
+      if(!t) return;
+      e.lin.forEach(function(l){
+        if(l.t !== "i") return;
+        var it = insPorId(l.id);
+        if(!it) return;
+        var c = cantTanda(l, e) * t;
+        usoIns[l.id]   = (usoIns[l.id]||0) + c * (familia(l.uni) === familia(it.fUni) ? uni(l.uni).f : uni(it.fUni).f);
+        gastoIns[l.id] = (gastoIns[l.id]||0) + costoLinea(it, c, l.uni || it.fUni);
+      });
+    });
+
+    return {
+      C:C, F:F, S:S, fresco:fresco, seco:seco,
+      kgMes:kgMes, bolsasPorKg:porKg,
+      horasKg:horasKg, horasMes:horasMes, valorHora:valorHora,
+      fijosMes:fijosMes, fijoKg:fijoKg, sueldo:sueldo,
+      tandas:tandas, gastoIns:gastoIns, usoIns:usoIns,
+      // Los que sí mueven el costo y todavía valen cero. Un reutilizable con 0 usos
+      // no se reparte, así que su precio no cambia nada: no se avisa por él.
+      faltanPrecios: DB.ins.filter(function(it){
+        if(Number(it.precio) || !(usoIns[it.id] > 0)) return false;
+        return !(it.tipo === "reu" && !Number(it.usos));
+      })
+    };
+  }
+
+  /* ---------- Datos reales del inventario y de los lotes ----------
+     La app ya sabe cuánto rinde una bolsa y cuántas se pierden: no tiene
+     sentido pedirle que lo adivine. */
+
+  function rendimientoReal(){
+    var kg = 0, bolsas = 0, n = 0;
+    invLotes().forEach(function(l){
+      var k = kgLote(l), b = bolsasVivas(l);
+      if(k > 0 && b > 0){ kg += k; bolsas += b; n++; }
+    });
+    if(!bolsas) return null;
+    return {g:(kg/bolsas)*1000, lotes:n, bolsas:bolsas};
+  }
+  function contaminacionReal(){
+    var puestas = 0, perdidas = 0, n = 0;
+    invLotes().forEach(function(l){
+      var b = Number(l.bolsas)||0;
+      if(!b) return;
+      puestas += b; perdidas += descartadas(l); n++;
+    });
+    if(!puestas) return null;
+    return {pct:(perdidas/puestas)*100, lotes:n, bolsas:puestas, perdidas:perdidas};
+  }
+
+  // Precios que hoy están en el cotizador, para comparar sin tocarlos.
+  function precioLista(){
+    try{
+      var raw = localStorage.getItem("hds_cot_v1");
+      if(!raw) return null;
+      var d = JSON.parse(raw);
+      if(!d || !d.cat) return null;
+      var min = 0, may = 0, n = 0;
+      d.cat.forEach(function(p){
+        if(p.off || p.uni !== "kg" || !Number(p.pMin)) return;
+        min += Number(p.pMin); may += Number(p.pMay)||0; n++;
+      });
+      return n ? {min:min/n, may:may/n, n:n} : null;
+    }catch(e){ return null; }
+  }
+
+  /* ---------- Íconos ---------- */
+
+  var ICONOS = {
+    mas:'<path d="M12 5v14M5 12h14"/>',
+    chev:'<path d="m6 9 6 6 6-6"/>',
+    rayo:'<path d="M13 2 4 14h7l-1 8 9-12h-7Z"/>',
+    reloj:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    caja:'<path d="M20 7 12 3 4 7l8 4 8-4Z"/><path d="M4 12l8 4 8-4M4 17l8 4 8-4"/>',
+    casa:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>',
+    bajar:'<path d="M12 3v12M7 11l5 5 5-5M4 20h16"/>',
+    subir:'<path d="M12 21V9M7 13l5-5 5 5M4 4h16"/>',
+    ayuda:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.1-2.5 3.6M12 17.5h.01"/>',
+    basura:'<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>'
+  };
+  function ico(k){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (ICONOS[k]||"") + "</svg>";
+  }
+
+  /* ---------- Render ---------- */
+
+  function pintarNav(){
+    document.getElementById("cosNav").innerHTML = SUBS.map(function(s){
+      return '<button class="chip' + (sub === s.k ? " on" : "") + '" data-ktab="' + s.k + '">' + esc(s.n) + "</button>";
+    }).join("");
+  }
+
+  function pintar(){
+    if(!DB) return;
+    pintarNav();
+    var r = calcular();
+    if(sub === "etapas")       pintarEtapas(r);
+    else if(sub === "insumos") pintarInsumos(r);
+    else if(sub === "costo")   pintarCosto(r);
+    else if(sub === "precios") pintarPrecios(r);
+    else                       pintarAjustes(r);
+    cabecera(r);
+  }
+
+  function cabecera(r){
+    if(vista !== "costos") return;
+    document.getElementById("hTitle").textContent = "Costos";
+    document.getElementById("hSub").textContent = r.fresco.total > 0
+      ? clp(r.fresco.total) + " el kilo"
+      : "Hongos del Sur";
+  }
+
+  function irSub(t){
+    sub = t;
+    SUBS.forEach(function(s){ document.getElementById("cos-" + s.k).hidden = s.k !== t; });
+    pintar();
+    window.scrollTo(0,0);
+  }
+
+  function heroHTML(r){
+    var h = '<div class="khero">';
+    h += '<div class="khero__k">Cuesta producir un kilo</div>';
+    h += '<div class="khero__v">' + clp(r.fresco.total) + "</div>";
+    h += '<div class="khero__s">' + (r.fresco.total > 0
+      ? "Insumos " + clp(r.fresco.ins + r.fresco.otr) + " · luz " + clp(r.fresco.luz) +
+        " · trabajo " + clp(r.fresco.mano) + " · fijos " + clp(r.fresco.fijo)
+      : "Carga los precios de tus insumos y el número aparece solo.") + "</div>";
+    h += "</div>";
+    return h;
+  }
+
+  function avisosHTML(r){
+    var h = "";
+    if(r.faltanPrecios.length){
+      h += '<div class="kaviso">Faltan precios en <b>' + r.faltanPrecios.length + " insumo" +
+           (r.faltanPrecios.length === 1 ? "" : "s") + "</b> que sí estás usando. Mientras tanto el costo está incompleto. " +
+           '<button data-kact="irInsumos">Cargarlos ahora</button></div>';
+    }
+    if(!r.kgMes){
+      h += '<div class="kaviso">Todavía no se puede repartir el sueldo ni los gastos fijos: revisa el plan del mes en Ajustes.</div>';
+    }
+    return h;
+  }
+
+  /* --- Etapas --- */
+
+  // «unidad» en plural es «unidades»: son cuatro casos y se leen todo el rato.
+  function nomUni(u, n){
+    if(Math.abs(Number(n)||0) === 1) return u;
+    return ({unidad:"unidades", par:"pares", rollo:"rollos", caja:"cajas", sobre:"sobres"})[u] || u;
+  }
+  // 24.750 g se entienden mejor como 24,75 kg.
+  function medida(n, u){
+    n = Number(n)||0;
+    var i = uni(u), grande = {m:"kg", v:"L", l:"m"}[i.fam];
+    if(!grande) return cifra(n, n < 1 ? 3 : 2) + " " + nomUni(u, n);
+    var base = n * i.f, g = uni(grande);
+    if(base >= g.f) return cifra(base/g.f, 2) + " " + grande;
+    return cifra(base, base < 1 ? 3 : 2) + " " + ({m:"g", v:"ml", l:"cm"})[i.fam];
+  }
+
+  function textoLinea(l, e){
+    if(l.t === "i"){
+      var it = insPorId(l.id);
+      var c = Number(l.cant)||0;
+      var u = l.uni || (it ? it.fUni : "");
+      var t = cifra(c, 3) + " " + nomUni(u, c) + (it && it.tipo === "reu" && Number(it.usos) ? " de uso" : "");
+      t += l.pu ? " por " + unidadSingular(e) : " por tanda";
+      if(l.pu) t += " · " + medida(cantTanda(l, e), u) + " en total";
+      return t;
+    }
+    if(l.t === "e"){
+      var s2 = etaPorK(l.ek);
+      var un = s2 ? unidadSingular(s2) : "unidad", unp = s2 ? s2.uni : "unidades";
+      if(l.alc && Number(l.cant)){
+        return "1 " + un + " cada " + cifra(1/(Number(l.cant)||1), 2) + " " + (l.pu ? e.uni : "tandas");
+      }
+      var t2 = cifra(l.cant, 3) + " " + (Math.abs(Number(l.cant)||0) === 1 ? un : unp);
+      t2 += l.pu ? " por " + unidadSingular(e) : " por tanda";
+      if(l.pu) t2 += " · " + cifra(cantTanda(l, e), 2) + " en total";
+      return t2;
+    }
+    if(l.t === "l"){
+      return (Number(l.w)||0) + " W · " + cifra(l.hDia,1) + " h al día · " + cifra(l.dias,0) + " días" +
+             (Number(l.duty) < 100 ? " · encendido " + cifra(l.duty,0) + "%" : "") +
+             "  (" + cifra(kwhLinea(l), 1) + " kWh)";
+    }
+    return l.pu ? clp(l.m) + " por " + unidadSingular(e) : clp(l.m) + " por tanda";
+  }
+
+  // «bolsas inoculadas» → «bolsa inoculada»: para que las frases se lean.
+  function unidadSingular(e){
+    var u = String(e.uni || "unidades").split(" ");
+    if(/s$/.test(u[0]) && u[0].length > 3) u[0] = u[0].replace(/es$/, "").replace(/s$/, "");
+    if(u[1] && /as$/.test(u[1])) u[1] = u[1].replace(/s$/, "");
+    return u.join(" ");
+  }
+
+  // Una línea que trae otra etapa se muestra con todo lo suyo dentro, horas
+  // incluidas: si no, las líneas no suman el total de la tanda.
+  function costoDeLinea(l, e, C, vh){
+    var c = cantTanda(l, e);
+    if(l.t === "i"){
+      var it = insPorId(l.id);
+      return costoLinea(it, c, l.uni || (it ? it.fUni : "unidad"));
+    }
+    if(l.t === "l") return kwhLinea(l) * (Number(DB.cfg.kwh)||0);
+    if(l.t === "o") return (Number(l.m)||0) * (l.pu ? (Number(e.rinde)||0) : 1);
+    var s = C[l.ek];
+    return s ? c * (s.ins + s.luz + s.otr + s.hor * (vh||0)) : 0;
+  }
+
+  function pintarEtapas(r){
+    var h = heroHTML(r) + avisosHTML(r);
+
+    DB.eta.forEach(function(e){
+      var s = r.C[e.k] || {ins:0,luz:0,otr:0,hor:0};
+      var unitario = s.ins + s.luz + s.otr;           // sin la mano de obra
+      var unitTot  = unitario + s.hor * r.valorHora;  // con todo, hasta acá
+      var ab = !!abierta[e.k];
+      var tandaTot = unitTot * rindeEf(e);
+
+      h += '<section class="stage' + (ab ? " open" : "") + '">';
+      h += '<button class="stage__head" data-kact="abrir" data-ke="' + esc(e.k) + '" aria-expanded="' + ab + '">';
+      h += '<span class="stage__n">' + esc(e.k) + "</span>";
+      h += '<span class="stage__txt"><span class="stage__t">' + esc(e.n) + "</span>";
+      h += '<span class="stage__d">' + cifra(e.rinde, 2) + " " + esc(e.uni) + " por tanda · " + cifra(e.horas,1) + " h" +
+           (Number(e.perdida) ? " · merma " + cifra(e.perdida,0) + "%" : "") + "</span></span>";
+      h += '<span class="stage__c">' + clpFino(unitTot) + ico("chev") + "</span>";
+      h += "</button>";
+
+      h += '<div class="stage__body">';
+      if(s.ciclo) h += '<div class="kaviso" style="margin:12px 14px">Esta etapa se consume a sí misma en algún paso: revisa las líneas que apuntan a otra etapa.</div>';
+      if(!e.lin.length) h += '<p class="note" style="padding:12px 14px 0">Sin líneas todavía. Agrega lo que se consume en esta etapa.</p>';
+
+      e.lin.forEach(function(l, i){
+        var c = costoDeLinea(l, e, r.C, r.valorHora);
+        var falta = l.t === "i" && insPorId(l.id) && !Number(insPorId(l.id).precio);
+        var nom = l.t === "i" ? nomIns(l.id) : l.t === "e" ? nomEta(l.ek) : (l.n || "");
+        h += '<button class="krow' + (l.t === "e" ? " krow--eta" : "") + (falta ? " krow--falta" : "") +
+             '" data-kact="linea" data-ke="' + esc(e.k) + '" data-ki="' + i + '">';
+        h += '<span class="krow__t"><span class="krow__n">' + (l.t === "e" ? "↳ " : "") + esc(nom) + "</span>";
+        h += '<span class="krow__m">' + esc(textoLinea(l, e)) + "</span></span>";
+        h += '<span class="krow__c">' + (falta ? "sin precio" : clpFino(c)) + "</span>";
+        h += "</button>";
+      });
+
+      if(Number(e.horas)){
+        h += '<div class="krow" style="cursor:default"><span class="krow__t"><span class="krow__n">Mano de obra</span>';
+        h += '<span class="krow__m">' + cifra(e.horas,1) + " h por tanda · " + clp(r.valorHora) + " la hora</span></span>";
+        h += '<span class="krow__c">' + clpFino((Number(e.horas)||0) * r.valorHora) + "</span></div>";
+      }
+
+      h += '<div class="ktot"><span>Tanda completa<br>' + cifra(rindeEf(e),2) + " " + esc(e.uni) +
+           (Number(e.perdida) ? " sanas" : "") + "</span>";
+      h += "<span>" + clp(tandaTot) + "<br><b>" + clpFino(unitTot) + "</b> cada " + esc(unidadSingular(e)) + "</span></div>";
+
+      h += '<div class="ktot"><span>Al ritmo del plan</span><span>' + cifra(r.tandas[e.k]||0, 1) + " tandas al mes</span></div>";
+
+      h += '<div class="kadd">';
+      h += '<button data-kact="nueva" data-ke="' + esc(e.k) + '" data-kv="i">+ insumo</button>';
+      h += '<button data-kact="nueva" data-ke="' + esc(e.k) + '" data-kv="e">+ etapa anterior</button>';
+      h += '<button data-kact="nueva" data-ke="' + esc(e.k) + '" data-kv="l">+ electricidad</button>';
+      h += '<button data-kact="nueva" data-ke="' + esc(e.k) + '" data-kv="o">+ otro gasto</button>';
+      h += '<button data-kact="etapa" data-ke="' + esc(e.k) + '">ajustar etapa</button>';
+      h += "</div></div></section>";
+    });
+
+    h += '<div style="margin-top:14px"><button class="btn btn--ghost" data-kact="etapaNueva">' + ico("mas") + "Agregar una etapa</button></div>";
+    h += '<p class="note">Cada etapa arrastra el costo de la anterior. Cambia el rinde, las cantidades o las horas y todo lo demás se recalcula, incluido el precio sugerido.</p>';
+
+    document.getElementById("cos-etapas").innerHTML = h;
+  }
+
+  /* --- Insumos --- */
+
+  function pintarInsumos(r){
+    var q = filtroIns.toLowerCase();
+    var h = "";
+
+    if(r.faltanPrecios.length){
+      h += '<div class="card"><div class="card__head"><div class="card__t">Faltan precios</div><div class="card__n">' +
+           r.faltanPrecios.length + "</div></div><div class=\"card__body\">";
+      h += '<p class="tile__s" style="margin:-4px 0 8px">Estos los estás usando y todavía valen cero. Escribe lo que pagaste por el formato completo.</p>';
+      r.faltanPrecios.forEach(function(it){
+        h += filaPrecio(it, r);
+      });
+      h += "</div></div>";
+    }
+
+    h += '<input class="search" id="kBuscar" placeholder="Buscar insumo" value="' + esc(filtroIns) + '">';
+
+    [["con","Se consumen"],["reu","Se reutilizan"]].forEach(function(g){
+      var lista = DB.ins.filter(function(it){
+        return it.tipo === g[0] && (!q || it.nom.toLowerCase().indexOf(q) >= 0);
+      });
+      if(!lista.length) return;
+      h += '<div class="igroup__t">' + g[1] + " · " + lista.length + "</div>";
+      lista.forEach(function(it){
+        var gasto = r.gastoIns[it.id] || 0;
+        h += '<button class="irow" data-kact="ins" data-kid="' + esc(it.id) + '">';
+        h += '<span class="irow__t"><span class="irow__n">' + esc(it.nom) + "</span>";
+        h += '<span class="irow__m">' + cifra(it.fCant,2) + " " + esc(nomUni(it.fUni, it.fCant)) + " · " + clp(it.precio) +
+             (Number(it.precio) ? " · " + clpFino(costoUso(it)) + " por " + esc(unidadChica(it)) + (it.tipo === "reu" ? " de uso" : "") : " · sin precio") +
+             (it.tipo === "reu" ? (Number(it.usos) ? " · " + cifra(it.usos,0) + " usos" : " · no se reparte") : "") +
+             "</span></span>";
+        h += '<span class="krow__c">' + (gasto >= 1 ? clp(gasto) + "<small>al mes</small>" : "") + "</span>";
+        h += "</button>";
+      });
+    });
+
+    h += '<div style="margin-top:14px"><button class="btn btn--ghost" data-kact="insNuevo">' + ico("mas") + "Nuevo insumo</button></div>";
+    h += '<p class="note">El costo sale de dividir lo que pagaste por el formato completo. Si compras un saco de 25 kg y usas 7,3 kg, se cobran los 7,3 kg. Los reutilizables se reparten entre los usos que aguantan; con «no se reparte» quedan como inversión y no encarecen el kilo.</p>';
+
+    document.getElementById("cos-insumos").innerHTML = h;
+  }
+
+  function filaPrecio(it, r){
+    var h = '<div class="kpre"><div class="kpre__t"><div class="kpre__n">' + esc(it.nom) + "</div>";
+    h += '<div class="kpre__m">' + cifra(it.fCant,2) + " " + esc(nomUni(it.fUni, it.fCant)) + " · lo que pagas por el formato</div></div>";
+    h += '<input inputmode="numeric" data-kpre="' + esc(it.id) + '" value="' + (Number(it.precio)||"") + '" placeholder="$"></div>';
+    return h;
+  }
+  function unidadChica(it){
+    var f = familia(it.fUni);
+    return f === "m" ? "g" : f === "v" ? "ml" : f === "l" ? "cm" : it.fUni;
+  }
+
+  /* --- Costo --- */
+
+  function pintarCosto(r){
+    var h = heroHTML(r) + avisosHTML(r);
+    var f = r.fresco;
+
+    h += '<div class="tiles">';
+    h += tile("Insumos y envases", clp(f.ins + f.otr), pctDe(f.ins + f.otr, f.total) + " del costo");
+    h += tile("Electricidad", clp(f.luz), pctDe(f.luz, f.total) + " · " + clp(DB.cfg.kwh) + " el kWh");
+    h += tile("Mano de obra", clp(f.mano), cifra(r.horasKg,2) + " h por kilo");
+    h += tile("Gastos fijos", clp(f.fijo), clp(r.fijosMes) + " al mes ÷ " + cifra(r.kgMes,1) + " kg");
+    h += "</div>";
+
+    /* En qué etapa se agrega el costo: lo propio de cada una, sin arrastrar. */
+    h += '<div class="card"><div class="card__head"><div class="card__t">Dónde se va el costo</div><div class="card__n">por kilo</div></div><div class="card__body">';
+    var propio = [];
+    DB.eta.forEach(function(e){
+      if(e.k === DB.cfg.finSeco) return;
+      var s = r.C[e.k] || {};
+      var enKg = (e.k === DB.cfg.finFresco ? 1 : (r.F.req[e.k] || 0));
+      if(!enKg) return;
+      var directoUnit = 0;
+      e.lin.forEach(function(l){ if(l.t !== "e") directoUnit += costoDeLinea(l, e, r.C); });
+      var ef = rindeEf(e);
+      var propioKg = ef > 0 ? (directoUnit / ef) * enKg : 0;
+      var manoKg = ef > 0 ? ((Number(e.horas)||0) / ef) * enKg * r.valorHora : 0;
+      propio.push({n:e.n, k:e.k, v:propioKg + manoKg});
+    });
+    propio.push({n:"Gastos fijos del mes", k:"", v:f.fijo});
+    var maxV = 0;
+    propio.forEach(function(p){ if(p.v > maxV) maxV = p.v; });
+    h += '<div class="bars">';
+    propio.forEach(function(p){
+      h += '<div><div class="bar__l"><span>' + esc(p.n) + "</span><span>" + clpFino(p.v) + "</span></div>";
+      h += '<div class="bar__t"><div class="bar__f" style="width:' + (maxV > 0 ? Math.round(p.v/maxV*100) : 0) + '%"></div></div></div>';
+    });
+    h += "</div></div></div>";
+
+    /* La cadena, paso a paso: es donde se ve que un kilo son 2 bolsas. */
+    h += '<div class="card"><div class="card__head"><div class="card__t">La cadena</div><div class="card__n">para 1 kg fresco</div></div><div class="card__body"><div class="tablescroll"><table class="kt">';
+    h += "<thead><tr><th>Etapa</th><th>Hace falta</th><th>c/u</th><th>Vale en el kilo</th></tr></thead><tbody>";
+    DB.eta.forEach(function(e){
+      if(e.k === DB.cfg.finSeco) return;
+      var s = r.C[e.k] || {ins:0,luz:0,otr:0,hor:0};
+      var u = e.k === DB.cfg.finFresco ? 1 : (r.F.req[e.k] || 0);
+      if(!u) return;
+      var cu = s.ins + s.luz + s.otr + s.hor * r.valorHora;
+      var fuerte = e.k === DB.cfg.finFresco;
+      h += "<tr" + (fuerte ? ' class="fuerte"' : "") + "><td>" + esc(e.n) + "<small>" + esc(e.uni) + "</small></td>";
+      h += "<td>" + (u < 0.05 ? "1 cada " + cifra(1/u, 0) : cifra(u, u < 1 ? 3 : 2)) + "</td>";
+      h += "<td>" + clpFino(cu) + "</td><td>" + clpFino(cu * u) + "</td></tr>";
+    });
+    h += '<tr class="fuerte"><td>Gastos fijos</td><td>—</td><td>—</td><td>' + clpFino(f.fijo) + "</td></tr>";
+    h += '<tr class="fuerte"><td>Costo del kilo</td><td></td><td></td><td>' + clp(f.total) + "</td></tr>";
+    h += "</tbody></table></div>";
+    h += '<p class="note" style="padding:11px 0 0">Cada fila ya trae dentro a las anteriores: la bolsa inoculada incluye el sustrato y el spawn. Esta columna no se suma hacia abajo; para ver cuánto agrega cada etapa está el gráfico de arriba.</p>';
+    h += "</div></div>";
+
+    /* Horas y sueldo */
+    h += '<div class="card"><div class="card__head"><div class="card__t">Tu trabajo</div><div class="card__n">' + cifra(r.horasMes,0) + " h al mes</div></div><div class=\"card__body\">";
+    if(r.horasMes > 0){
+      h += '<p class="tile__s" style="margin:-4px 0 10px">Sumando las horas que anotaste en cada etapa, el plan del mes te toma <b>' +
+           cifra(r.horasMes,0) + " horas</b> (unas " + cifra(r.horasMes/4.3,1) + " por semana). " +
+           (DB.cfg.modoHora === "sueldo"
+             ? "Para sacar " + clp(r.sueldo) + " al mes, tu hora tiene que valer <b>" + clp(r.valorHora) + "</b>."
+             : "A " + clp(r.valorHora) + " la hora, el mes te deja " + clp(r.valorHora * r.horasMes) + ".") + "</p>";
+      h += '<div class="tiles">';
+      h += tile("Vale tu hora", clp(r.valorHora), DB.cfg.modoHora === "sueldo" ? "para llegar al sueldo" : "valor que fijaste");
+      h += tile("Horas por kilo", cifra(r.horasKg,2) + " h", "de la placa al despacho");
+      h += "</div>";
+    }else{
+      h += '<p class="tile__s">Anota en cada etapa cuánto te demoras (botón «ajustar etapa») y acá aparece cuánto vale tu hora.</p>';
+    }
+    h += "</div></div>";
+
+    /* Rendimiento: lo que más mueve el costo */
+    var rr = rendimientoReal(), cr = contaminacionReal();
+    h += '<div class="card"><div class="card__head"><div class="card__t">Rendimiento</div><div class="card__n">lo que más mueve el costo</div></div><div class="card__body">';
+    if(r.bolsasPorKg > 0){
+      h += '<p class="tile__s" style="margin:-4px 0 10px">Hoy el cálculo supone <b>' + cifra(1000/r.bolsasPorKg, 0) +
+           " g por bolsa</b>. Cada bolsa te cuesta " + clpFino(f.total / r.bolsasPorKg) + " puesta en la cámara.</p>";
+    }
+    if(rr){
+      h += '<button class="btn btn--ghost" data-kact="usarRend" data-kv="' + rr.g + '">Usar mi promedio real: ' +
+           cifra(rr.g,0) + " g por bolsa (" + rr.bolsas + " bolsas)</button>";
+    }else{
+      h += '<p class="tile__s">Cuando registres cosechas en la pestaña Lotes, vas a poder traer tu rendimiento real de un toque.</p>';
+    }
+    if(cr && cr.pct > 0){
+      h += '<div style="margin-top:9px"><button class="btn btn--ghost" data-kact="usarCont" data-kv="' + cr.pct + '">Usar mi contaminación real: ' +
+           pct(cr.pct) + " (" + cr.perdidas + " de " + cr.bolsas + " bolsas)</button></div>";
+    }
+    h += "</div></div>";
+
+    /* Deshidratado */
+    var s8 = etaPorK(DB.cfg.finSeco);
+    if(s8){
+      h += '<div class="card"><div class="card__head"><div class="card__t">Deshidratado</div><div class="card__n">' + esc(s8.uni) + '</div></div><div class="card__body">';
+      h += '<p class="tile__s" style="margin:-4px 0 10px">Un kilo seco se lleva ' + cifra(r.S.req[DB.cfg.finFresco]||0, 1) +
+           " kg de fresco más las horas de máquina.</p>";
+      h += '<div class="tiles">';
+      h += tile("Cuesta el kilo seco", clp(r.seco.total), "todo incluido");
+      h += tile("Equivale a", clpFino(r.seco.total / Math.max(1, r.S.req[DB.cfg.finFresco]||1)), "por kilo fresco usado");
+      h += "</div></div></div>";
+    }
+
+    document.getElementById("cos-costo").innerHTML = h;
+  }
+
+  function tile(k, v, s){
+    return '<div class="tile"><div class="tile__k">' + esc(k) + '</div><div class="tile__v">' + v +
+           '</div><div class="tile__s">' + s + "</div></div>";
+  }
+  function pctDe(a, b){ return b > 0 ? pct(a/b*100) : "—"; }
+
+  /* --- Precios --- */
+
+  function pintarPrecios(r){
+    var cfg = DB.cfg, iva = Number(cfg.iva)||0;
+    var costo = r.fresco.total;
+    var variable = r.fresco.directo;                 // lo que cuesta un kilo más de verdad
+    var lista = precioLista();
+
+    // Margen sobre el precio de venta: precio = costo / (1 - margen)
+    function precioDe(m){
+      m = Math.min(95, Math.max(0, Number(m)||0));
+      return costo > 0 ? costo / (1 - m/100) : 0;
+    }
+    function conIva(p){ return p * (1 + iva/100); }
+    function redondear(p){ return Math.round(p/100)*100; }
+
+    var pMin = redondear(precioDe(cfg.mMin));
+    var pMay = redondear(precioDe(cfg.mMay));
+
+    var h = '<div class="khero">';
+    h += '<div class="khero__k">Precio mínimo · no pierdes ni ganas</div>';
+    h += '<div class="khero__v">' + clp(costo) + '</div>';
+    h += '<div class="khero__s">Por debajo de esto cada kilo que vendes te saca plata del bolsillo, sueldo incluido. ' +
+         "Sin contar tu sueldo el piso baja a " + clp(costo - r.fresco.mano) + ".</div></div>";
+
+    h += avisosHTML(r);
+
+    h += '<div class="card"><div class="card__head"><div class="card__t">Tus precios</div><div class="card__n">margen sobre la venta</div></div><div class="card__body">';
+    h += '<div class="f2"><div class="field"><label>Margen minorista (%)</label><input inputmode="decimal" data-kg="mMin" value="' + cifra(cfg.mMin,1) + '"></div>';
+    h += '<div class="field"><label>Margen mayorista (%)</label><input inputmode="decimal" data-kg="mMay" value="' + cifra(cfg.mMay,1) + '"></div></div>';
+
+    h += '<div class="tablescroll"><table class="kt"><thead><tr><th>Canal</th><th>Neto</th><th>Con IVA</th><th>Te queda</th></tr></thead><tbody>';
+    h += filaPrecio2("Minorista", pMin, conIva(pMin), pMin - costo);
+    h += filaPrecio2("Mayorista", pMay, conIva(pMay), pMay - costo);
+    if(lista){
+      h += '<tr class="fuerte"><td colspan="4" style="border-top:1px solid var(--line);padding-top:11px;font-weight:600">Lo que cobras hoy</td></tr>';
+      h += filaPrecio2("Minorista actual", lista.min/(1+iva/100), lista.min, lista.min/(1+iva/100) - costo);
+      h += filaPrecio2("Mayorista actual", lista.may/(1+iva/100), lista.may, lista.may/(1+iva/100) - costo);
+    }
+    h += "</tbody></table></div>";
+    if(lista){
+      var mHoy = lista.may/(1+iva/100);
+      h += '<p class="note" style="padding:0">Tu lista del cotizador tiene los precios con IVA incluido: ' + clp(lista.min) +
+           " minorista y " + clp(lista.may) + " mayorista. Descontado el IVA, al mayorista te queda " +
+           (mHoy > costo ? "<b>" + clp(mHoy - costo) + " por kilo</b> (" + pct((mHoy-costo)/mHoy*100) + " de margen)."
+                         : "<b style=\"color:var(--crit)\">" + clp(mHoy - costo) + " por kilo</b>: estás vendiendo bajo el costo.") + "</p>";
+    }
+    h += "</div></div>";
+
+    /* Punto de equilibrio: la pregunta de verdad. */
+    h += '<div class="card"><div class="card__head"><div class="card__t">Cuánto tienes que vender</div><div class="card__n">para pagarte el sueldo</div></div><div class="card__body">';
+    h += '<p class="tile__s" style="margin:-4px 0 11px">Cada kilo deja, después de pagar insumos y luz, lo que sobra del precio. Con eso hay que cubrir los gastos fijos (' +
+         clp(r.fijosMes) + ") y tu sueldo (" + clp(r.sueldo) + ").</p>";
+    h += '<div class="tablescroll"><table class="kt"><thead><tr><th>Si vendes a</th><th>Deja por kilo</th><th>Kilos al mes</th><th>Bolsas</th></tr></thead><tbody>';
+    [pMay, pMin, lista ? lista.may/(1+iva/100) : 0, lista ? lista.min/(1+iva/100) : 0].forEach(function(p, i){
+      if(!p) return;
+      var contrib = p - variable;
+      var necesita = contrib > 0 ? (r.fijosMes + r.sueldo) / contrib : 0;
+      h += "<tr><td>" + clp(p) + "<small>" + ["margen mayorista","margen minorista","mayorista de hoy","minorista de hoy"][i] + "</small></td>";
+      h += "<td>" + clpFino(contrib) + "</td>";
+      h += "<td>" + (contrib > 0 ? "<b>" + cifra(necesita,1) + " kg</b>" : "nunca") + "</td>";
+      h += "<td>" + (contrib > 0 && r.bolsasPorKg ? cifra(necesita * r.bolsasPorKg, 0) : "—") + "</td></tr>";
+    });
+    h += "</tbody></table></div>";
+    if(r.kgMes > 0){
+      // Con el precio que cobra hoy, no con el sugerido: es la pregunta real.
+      var pHoy = lista ? lista.may/(1+iva/100) : pMay;
+      var resultado = (pHoy - variable) * r.kgMes - r.fijosMes;
+      h += '<p class="note" style="padding:11px 0 0">Con tu plan actual de ' + cifra(DB.cfg.bolsasMes,0) + " bolsas al mes produces " +
+           cifra(r.kgMes,1) + " kg. Vendiéndolos todos a " + clp(pHoy) + " el kilo (" + (lista ? "tu precio mayorista de hoy" : "el margen que fijaste") +
+           ") te quedan <b>" + clp(resultado) + "</b> al mes para sueldo y para crecer" + (resultado > 0 && resultado < r.sueldo
+             ? ": " + clp(r.sueldo - resultado) + " menos de lo que necesitas."
+             : resultado <= 0 ? ". No alcanza: hay que subir el precio o el volumen." : ". Alcanza.") + "</p>";
+    }
+    h += "</div></div>";
+
+    /* Deshidratado */
+    if(etaPorK(cfg.finSeco) && r.seco.total > 0){
+      var pSeco = redondear(r.seco.total / (1 - Math.min(95, cfg.mMin)/100));
+      h += '<div class="card"><div class="card__head"><div class="card__t">Deshidratado</div><div class="card__n">bolsa de 100 g</div></div><div class="card__body">';
+      h += '<div class="tablescroll"><table class="kt"><thead><tr><th>Formato</th><th>Costo</th><th>Precio con IVA</th></tr></thead><tbody>';
+      h += "<tr><td>Kilo deshidratado</td><td>" + clp(r.seco.total) + "</td><td>" + clp(conIva(pSeco)) + "</td></tr>";
+      h += "<tr><td>Bolsa de 100 g</td><td>" + clp(r.seco.total/10) + "</td><td>" + clp(Math.round(conIva(pSeco)/10/100)*100) + "</td></tr>";
+      h += "</tbody></table></div></div></div>";
+    }
+
+    h += '<p class="note">El margen está calculado sobre el precio de venta, que es como se mira en el comercio: 30% de margen sobre $10.000 son $3.000. Los precios con IVA son los que le muestras al cliente; el cotizador trabaja con esos mismos.</p>';
+
+    document.getElementById("cos-precios").innerHTML = h;
+  }
+
+  function filaPrecio2(nom, neto, iva, deja){
+    return "<tr><td>" + esc(nom) + "</td><td>" + clp(neto) + "</td><td><b>" + clp(iva) + "</b></td><td" +
+           (deja < 0 ? ' style="color:var(--crit)"' : "") + ">" + clp(deja) + "</td></tr>";
+  }
+
+  /* --- Ajustes --- */
+
+  function pintarAjustes(r){
+    var cfg = DB.cfg, h = "";
+
+    h += '<div class="card"><div class="card__head"><div class="card__t">Plan del mes</div></div><div class="card__body">';
+    h += '<div class="field"><label>Bolsas de sustrato que inoculas al mes</label><input inputmode="numeric" data-kg="bolsasMes" value="' + cifra(cfg.bolsasMes,0) + '">';
+    h += '<span class="hint">Con esto se reparten los gastos fijos y se calcula cuántas horas trabajas. ' +
+         (r.kgMes ? "Hoy equivale a " + cifra(r.kgMes,1) + " kg de hongo fresco al mes." : "") + "</span></div>";
+    h += "</div></div>";
+
+    h += '<div class="card"><div class="card__head"><div class="card__t">Tu sueldo</div></div><div class="card__body">';
+    h += '<div class="field"><label>Cómo valorizar tu hora</label><select data-kg="modoHora">';
+    h += '<option value="sueldo"' + (cfg.modoHora === "sueldo" ? " selected" : "") + ">Desde el sueldo que quiero sacar</option>";
+    h += '<option value="fijo"' + (cfg.modoHora === "fijo" ? " selected" : "") + ">Un valor por hora que yo fijo</option></select></div>";
+    if(cfg.modoHora === "sueldo"){
+      h += '<div class="field"><label>Sueldo mensual que quieres retirar</label><input inputmode="numeric" data-kg="sueldo" value="' + miles(cfg.sueldo) + '">';
+      h += '<span class="hint">' + (r.horasMes > 0
+        ? "Con " + cifra(r.horasMes,0) + " horas al mes, tu hora vale " + clp(r.valorHora) + "."
+        : "Anota las horas de cada etapa para que se pueda repartir.") + "</span></div>";
+    }else{
+      h += '<div class="field"><label>Valor de tu hora</label><input inputmode="numeric" data-kg="valorHora" value="' + miles(cfg.valorHora) + '">';
+      h += '<span class="hint">' + (r.horasMes > 0 ? "Te daría " + clp(r.valorHora * r.horasMes) + " al mes por " + cifra(r.horasMes,0) + " horas." : "") + "</span></div>";
+    }
+    h += "</div></div>";
+
+    h += '<div class="card"><div class="card__head"><div class="card__t">Gastos fijos</div><div class="card__n">' + clp(r.fijosMes) + " al mes</div></div><div class=\"card__body\">";
+    (cfg.fijos||[]).forEach(function(g, i){
+      h += '<button class="krow" style="padding-left:0;padding-right:0" data-kact="fijo" data-ki="' + i + '">';
+      h += '<span class="krow__t"><span class="krow__n">' + esc(g.n) + "</span></span>";
+      h += '<span class="krow__c">' + clp(g.m) + "</span></button>";
+    });
+    h += '<div class="kadd" style="padding-left:0;padding-right:0"><button data-kact="fijoNuevo">+ agregar gasto fijo</button></div>';
+    h += '<p class="tile__s">Los que no cambian aunque produzcas más: internet, agua, arriendo, contador. La luz de la cámara no va acá, esa se calcula por tanda.' +
+         (r.kgMes ? " Repartidos entre " + cifra(r.kgMes,1) + " kg, cargan " + clpFino(r.fijoKg) + " a cada kilo." : "") + "</p>";
+    h += "</div></div>";
+
+    h += '<div class="card"><div class="card__head"><div class="card__t">Tarifas e impuestos</div></div><div class="card__body">';
+    h += '<div class="f2"><div class="field"><label>Precio del kWh</label><input inputmode="numeric" data-kg="kwh" value="' + miles(cfg.kwh) + '"><span class="hint">Divide el total de la boleta de luz por los kWh que marca.</span></div>';
+    h += '<div class="field"><label>IVA (%)</label><input inputmode="decimal" data-kg="iva" value="' + cifra(cfg.iva,1) + '"></div></div>';
+    h += '<div class="field"><label>Los precios que anoto</label><select data-kg="netear">';
+    h += '<option value="0"' + (!cfg.netear ? " selected" : "") + ">Es lo que pago, y así cuesta</option>";
+    h += '<option value="1"' + (cfg.netear ? " selected" : "") + ">Incluyen IVA y lo recupero (crédito fiscal)</option></select>";
+    h += '<span class="hint">Si emites factura y usas el IVA de tus compras como crédito, el costo real es el neto. Si compras con boleta, deja la primera opción.</span></div>';
+    h += "</div></div>";
+
+    h += '<div class="card"><div class="card__head"><div class="card__t">Producto final</div></div><div class="card__body">';
+    h += '<div class="f2"><div class="field"><label>Etapa del producto fresco</label><select data-kg="finFresco">' + opcEtapas(cfg.finFresco) + "</select></div>";
+    h += '<div class="field"><label>Etapa del deshidratado</label><select data-kg="finSeco">' + opcEtapas(cfg.finSeco) + "</select></div></div>";
+    h += '<div class="field"><label>Etapa que cuentas en el plan</label><select data-kg="etapaPlan">' + opcEtapas(cfg.etapaPlan) + "</select>";
+    h += '<span class="hint">La etapa cuyo volumen decides tú. Normalmente las bolsas que inoculas.</span></div>';
+    h += "</div></div>";
+
+    h += '<div class="card"><div class="card__head"><div class="card__t">Datos</div></div><div class="card__body">';
+    h += '<button class="menu__item" data-kact="respaldo">' + ico("bajar") + "<span>Descargar respaldo de costos<small>Insumos, etapas y ajustes</small></span></button>";
+    h += '<button class="menu__item" data-kact="restaurar">' + ico("subir") + "<span>Restaurar desde respaldo<small>Reemplaza todo lo de esta pestaña</small></span></button>";
+    h += '<button class="menu__item" data-kact="csv">' + ico("caja") + "<span>Exportar costos (CSV)<small>Insumos y etapas para Excel</small></span></button>";
+    h += '<button class="menu__item" data-kact="ayuda">' + ico("ayuda") + "<span>Cómo se calcula<small>De dónde sale cada número</small></span></button>";
+    h += '<button class="menu__item" data-kact="reset" style="color:var(--crit)">' + ico("basura") + "<span>Volver a los valores iniciales<small>Borra precios, etapas y ajustes</small></span></button>";
+    h += "</div></div>";
+
+    document.getElementById("cos-ajustes").innerHTML = h;
+  }
+
+  function opcEtapas(sel){
+    return DB.eta.map(function(e){
+      return '<option value="' + esc(e.k) + '"' + (e.k === sel ? " selected" : "") + ">" + esc(e.k + " · " + e.n) + "</option>";
+    }).join("");
+  }
+
+  /* ---------- Hojas ---------- */
+
+  function hojaInsumo(id){
+    var nuevo = !id;
+    var it = nuevo ? {id:"", nom:"", tipo:"con", fCant:1, fUni:"unidad", precio:0, usos:0, prov:""} : insPorId(id);
+    if(!it) return;
+
+    var h = '<h2 class="sheet__t">' + (nuevo ? "Nuevo insumo" : esc(it.nom)) + "</h2>";
+    h += '<p class="sheet__d">Anótalo como lo compras. El costo por gramo o por unidad lo calcula la app.</p>';
+    h += '<div class="field"><label for="ki_nom">Nombre</label><input id="ki_nom" value="' + esc(it.nom) + '" placeholder="Ej: Pellet de pino Ecomas"></div>';
+    h += '<div class="field"><label for="ki_tipo">Tipo</label><select id="ki_tipo">';
+    h += '<option value="con"' + (it.tipo === "con" ? " selected" : "") + ">Se consume</option>";
+    h += '<option value="reu"' + (it.tipo === "reu" ? " selected" : "") + ">Se reutiliza</option></select></div>";
+
+    h += '<div class="f2"><div class="field"><label for="ki_cant">Cuánto trae el formato</label><input id="ki_cant" inputmode="decimal" value="' + cifra(it.fCant,3) + '"></div>';
+    h += '<div class="field"><label for="ki_uni">Unidad</label><select id="ki_uni">';
+    UNIS.forEach(function(u){ h += '<option' + (u.u === it.fUni ? " selected" : "") + ">" + u.u + "</option>"; });
+    h += "</select></div></div>";
+
+    h += '<div class="f2"><div class="field"><label for="ki_precio">Precio del formato</label><input id="ki_precio" inputmode="numeric" value="' + (Number(it.precio)||"") + '" placeholder="$"></div>';
+    h += '<div class="field"><label for="ki_usos">Usos que aguanta</label><input id="ki_usos" inputmode="numeric" value="' + (Number(it.usos)||"") + '" placeholder="0"></div></div>';
+    h += '<p class="note" style="padding:0 4px 4px">«Usos» sólo cuenta para los reutilizables: un frasco Duran de $8.000 que aguanta 200 tandas pone $40 en cada una. Déjalo en 0 si es algo que compras una vez y dura para siempre, como la Wenbox: aparece como inversión y no encarece el kilo.</p>';
+
+    h += '<div class="field"><label for="ki_prov">Proveedor</label><input id="ki_prov" value="' + esc(it.prov||"") + '" placeholder="opcional"></div>';
+    h += '<div style="margin-top:6px"><button class="btn btn--primary" data-kact="insGuardar" data-kid="' + esc(it.id) + '">Guardar</button></div>';
+    if(!nuevo) h += '<div style="margin-top:9px"><button class="btn btn--danger" data-kact="insBorrar" data-kid="' + esc(it.id) + '">Eliminar insumo</button></div>';
+    abrirHoja(h);
+    if(nuevo) setTimeout(function(){ document.getElementById("ki_nom").focus(); }, 120);
+  }
+
+  function hojaLinea(ek, i, tipo){
+    var e = etaPorK(ek);
+    if(!e) return;
+    var nueva = i < 0;
+    var l = nueva ? lineaNueva(tipo) : e.lin[i];
+    if(!l) return;
+    var un = unidadSingular(e);
+
+    var h = '<h2 class="sheet__t">' + (nueva ? "Agregar a " : "") + esc(nueva ? e.n : (l.t === "i" ? nomIns(l.id) : l.t === "e" ? nomEta(l.ek) : l.n)) + "</h2>";
+    h += '<p class="sheet__d">' + esc(e.n) + " · una tanda son " + cifra(e.rinde,2) + " " + esc(e.uni) + ".</p>";
+
+    if(l.t === "i"){
+      h += '<div class="field"><label for="kl_id">Insumo</label><select id="kl_id">';
+      [["con","Se consumen"],["reu","Se reutilizan"]].forEach(function(g){
+        h += '<optgroup label="' + g[1] + '">';
+        DB.ins.filter(function(x){ return x.tipo === g[0]; }).forEach(function(x){
+          h += '<option value="' + esc(x.id) + '"' + (x.id === l.id ? " selected" : "") + ">" + esc(x.nom) + "</option>";
+        });
+        h += "</optgroup>";
+      });
+      h += "</select></div>";
+      var itSel = insPorId(l.id) || DB.ins[0];
+      h += '<div class="f2"><div class="field"><label for="kl_cant">Cuánto ocupas</label><input id="kl_cant" inputmode="decimal" value="' + cifra(l.cant,3) + '"></div>';
+      h += '<div class="field"><label for="kl_uni">Unidad</label><select id="kl_uni">';
+      unisDe(l.uni || (itSel ? itSel.fUni : "unidad")).forEach(function(u){
+        h += '<option' + (u.u === l.uni ? " selected" : "") + ">" + u.u + "</option>";
+      });
+      h += "</select></div></div>";
+      h += modoHTML(l, un);
+    }
+
+    if(l.t === "e"){
+      h += '<div class="field"><label for="kl_ek">Etapa que se consume</label><select id="kl_ek">';
+      DB.eta.forEach(function(x){
+        if(x.k === e.k) return;
+        h += '<option value="' + esc(x.k) + '"' + (x.k === l.ek ? " selected" : "") + ">" + esc(x.k + " · " + x.n + " (" + x.uni + ")") + "</option>";
+      });
+      h += "</select></div>";
+      h += '<div class="field"><label for="kl_modo">Cómo lo cuentas</label><select id="kl_modo">';
+      h += '<option value="tanda"' + (!l.pu && !l.alc ? " selected" : "") + ">Una cantidad por tanda</option>";
+      h += '<option value="unidad"' + (l.pu && !l.alc ? " selected" : "") + ">Una cantidad por cada " + esc(un) + "</option>";
+      h += '<option value="alcT"' + (!l.pu && l.alc ? " selected" : "") + ">Una alcanza para varias tandas</option>";
+      h += '<option value="alcU"' + (l.pu && l.alc ? " selected" : "") + ">Una alcanza para varias " + esc(e.uni) + "</option></select></div>";
+      h += '<div class="field"><label for="kl_cant">Cantidad</label><input id="kl_cant" inputmode="decimal" value="' +
+           (l.alc ? cifra(1/(Number(l.cant)||1), 2) : cifra(l.cant,3)) + '">';
+      h += '<span class="hint">Con «alcanza para», escribe para cuántas. Así se anota que una placa da veinte frascos, o que una bolsa de spawn inocula cinco bolsas.</span></div>';
+    }
+
+    if(l.t === "l"){
+      h += '<div class="field"><label for="kl_n">Equipo</label><input id="kl_n" value="' + esc(l.n||"") + '" placeholder="Ej: Humidificador"></div>';
+      h += '<div class="f2"><div class="field"><label for="kl_w">Consumo (watts)</label><input id="kl_w" inputmode="numeric" value="' + (Number(l.w)||"") + '"></div>';
+      h += '<div class="field"><label for="kl_hDia">Horas al día</label><input id="kl_hDia" inputmode="decimal" value="' + cifra(l.hDia,1) + '"></div></div>';
+      h += '<div class="f2"><div class="field"><label for="kl_dias">Días que dura</label><input id="kl_dias" inputmode="decimal" value="' + cifra(l.dias,1) + '"></div>';
+      h += '<div class="field"><label for="kl_duty">Encendido (%)</label><input id="kl_duty" inputmode="decimal" value="' + cifra(l.duty,0) + '"></div></div>';
+      h += '<p class="note" style="padding:0 4px 4px">Para lo que va por ciclos, el porcentaje es cuánto del tiempo está prendido: 3 minutos prendido y 6 apagado es 33%.</p>';
+    }
+
+    if(l.t === "o"){
+      h += '<div class="field"><label for="kl_n">Nombre</label><input id="kl_n" value="' + esc(l.n||"") + '" placeholder="Ej: Gas de esterilización"></div>';
+      h += '<div class="field"><label for="kl_m">Monto</label><input id="kl_m" inputmode="numeric" value="' + (Number(l.m)||"") + '" placeholder="$"></div>';
+      h += modoHTML(l, un);
+    }
+
+    h += '<div style="margin-top:6px"><button class="btn btn--primary" data-kact="lineaGuardar" data-ke="' + esc(ek) + '" data-ki="' + i + '" data-kv="' + l.t + '">Guardar</button></div>';
+    if(!nueva) h += '<div style="margin-top:9px"><button class="btn btn--danger" data-kact="lineaBorrar" data-ke="' + esc(ek) + '" data-ki="' + i + '">Quitar de esta etapa</button></div>';
+    abrirHoja(h);
+  }
+
+  function modoHTML(l, un){
+    var h = '<div class="field"><label for="kl_modo">Esa cantidad es</label><select id="kl_modo">';
+    h += '<option value="tanda"' + (!l.pu ? " selected" : "") + ">Por tanda completa</option>";
+    h += '<option value="unidad"' + (l.pu ? " selected" : "") + ">Por cada " + esc(un) + "</option></select></div>";
+    return h;
+  }
+
+  function lineaNueva(t){
+    if(t === "i") return {t:"i", id:DB.ins.length ? DB.ins[0].id : "", cant:1, uni:DB.ins.length ? DB.ins[0].fUni : "unidad", pu:false};
+    if(t === "e") return {t:"e", ek:"", cant:1, pu:false, alc:false};
+    if(t === "l") return {t:"l", n:"", w:100, hDia:24, dias:14, duty:100};
+    return {t:"o", n:"", m:0, pu:false};
+  }
+
+  function hojaEtapa(k){
+    var nueva = !k;
+    var e = nueva ? {k:"", n:"", d:"", uni:"unidades", rinde:1, horas:0, perdida:0, lin:[]} : etaPorK(k);
+    if(!e) return;
+    var h = '<h2 class="sheet__t">' + (nueva ? "Nueva etapa" : esc(e.n)) + "</h2>";
+    h += '<p class="sheet__d">Qué produce una tanda y cuánto te toma hacerla.</p>';
+    h += '<div class="field"><label for="ke_n">Nombre</label><input id="ke_n" value="' + esc(e.n) + '"></div>';
+    h += '<div class="field"><label for="ke_d">Descripción</label><input id="ke_d" value="' + esc(e.d||"") + '" placeholder="opcional"></div>';
+    h += '<div class="f2"><div class="field"><label for="ke_rinde">Rinde por tanda</label><input id="ke_rinde" inputmode="decimal" value="' + cifra(e.rinde,2) + '"></div>';
+    h += '<div class="field"><label for="ke_uni">Qué produce</label><input id="ke_uni" value="' + esc(e.uni) + '" placeholder="bolsas"></div></div>';
+    h += '<div class="f2"><div class="field"><label for="ke_horas">Horas por tanda</label><input id="ke_horas" inputmode="decimal" value="' + cifra(e.horas,2) + '"></div>';
+    h += '<div class="field"><label for="ke_perdida">Merma (%)</label><input id="ke_perdida" inputmode="decimal" value="' + cifra(e.perdida,1) + '"></div></div>';
+    h += '<p class="note" style="padding:0 4px 4px">La merma es lo que se pierde en esta etapa: bolsas contaminadas, frascos que no colonizan. Si de 30 bolsas se pierden 3, son 10%: el costo se reparte entre las 27 que sobreviven.</p>';
+    h += '<p class="note" style="padding:0 4px 8px">Las horas son las tuyas, de principio a fin de la tanda. Súmalas todas y la app calcula cuántas trabajas al mes y cuánto vale tu hora.</p>';
+    h += '<div style="margin-top:6px"><button class="btn btn--primary" data-kact="etapaGuardar" data-ke="' + esc(e.k) + '">Guardar</button></div>';
+    if(!nueva && DB.eta.length > 1){
+      h += '<div style="margin-top:9px"><button class="btn btn--danger" data-kact="etapaBorrar" data-ke="' + esc(e.k) + '">Eliminar etapa</button></div>';
+    }
+    abrirHoja(h);
+  }
+
+  function hojaFijo(i){
+    var nuevo = i < 0;
+    var g = nuevo ? {n:"", m:0} : DB.cfg.fijos[i];
+    if(!g) return;
+    var h = '<h2 class="sheet__t">' + (nuevo ? "Nuevo gasto fijo" : esc(g.n)) + "</h2>";
+    h += '<p class="sheet__d">Lo que pagas todos los meses produzcas mucho o poco.</p>';
+    h += '<div class="field"><label for="kf_n">Nombre</label><input id="kf_n" value="' + esc(g.n) + '" placeholder="Ej: Arriendo"></div>';
+    h += '<div class="field"><label for="kf_m">Monto mensual</label><input id="kf_m" inputmode="numeric" value="' + (Number(g.m)||"") + '" placeholder="$"></div>';
+    h += '<div style="margin-top:6px"><button class="btn btn--primary" data-kact="fijoGuardar" data-ki="' + i + '">Guardar</button></div>';
+    if(!nuevo) h += '<div style="margin-top:9px"><button class="btn btn--danger" data-kact="fijoBorrar" data-ki="' + i + '">Eliminar</button></div>';
+    abrirHoja(h);
+  }
+
+  function hojaAyuda(){
+    var h = '<h2 class="sheet__t">Cómo se calcula</h2>';
+    h += '<p class="sheet__d">Para que el número no sea magia.</p>';
+    h += '<div style="font-size:.88rem;line-height:1.65;color:var(--ink-soft)">';
+    h += '<p style="margin-bottom:12px"><strong style="color:var(--ink)">Sólo se cobra lo que se usa.</strong> El agar se compra en 500 g y se ocupan 10 g para doce placas: se cobran 10 g. El pellet viene en sacos de 15 kg y van 825 g por bolsa: se cobran 825 g.</p>';
+    h += '<p style="margin-bottom:12px"><strong style="color:var(--ink)">Lo reutilizable se reparte.</strong> Un frasco Duran que aguanta 200 tandas pone su precio dividido en 200 cada vez. Con 0 usos no se reparte: es inversión, como la Wenbox, y no encarece el kilo.</p>';
+    h += '<p style="margin-bottom:12px"><strong style="color:var(--ink)">Cada etapa hereda a la anterior.</strong> La placa entra al frasco de cultivo líquido, el frasco al spawn, el spawn a la bolsa, la bolsa al kilo. Por eso cambiar el precio del trigo mueve el precio del kilo.</p>';
+    h += '<p style="margin-bottom:12px"><strong style="color:var(--ink)">La merma encarece lo que queda.</strong> Si de 30 bolsas se pierden 3, la tanda entera se paga con 27: cada bolsa buena cuesta 11% más. Es el costo más fácil de olvidar.</p>';
+    h += '<p style="margin-bottom:12px"><strong style="color:var(--ink)">La luz se calcula, no se adivina.</strong> Watts ÷ 1000 × horas × días × porcentaje encendido = kWh, por el precio del kWh. El humidificador que va 3 minutos sí y 6 no está encendido un 33% del tiempo.</p>';
+    h += '<p style="margin-bottom:12px"><strong style="color:var(--ink)">Tus horas son un costo.</strong> Se suman las de cada etapa según cuántas tandas exige el plan del mes. Si quieres retirar un sueldo, ese sueldo dividido por esas horas es lo que tiene que valer tu hora, y esa hora entra al costo del kilo.</p>';
+    h += '<p style="margin-bottom:12px"><strong style="color:var(--ink)">Los gastos fijos se reparten por kilo.</strong> Internet y agua se pagan igual produzcas 20 o 100 kilos: por eso producir más baja el costo, y por eso el número cambia cuando cambias el plan del mes.</p>';
+    h += '<p style="margin-bottom:12px"><strong style="color:var(--ink)">El margen es sobre la venta.</strong> 30% de margen en un kilo de $10.000 son $3.000 para ti. Es la forma en que se habla de márgenes en el comercio, y evita el error de sumarle 30% al costo y creer que ganaste 30%.</p>';
+    h += '<p><strong style="color:var(--ink)">Nada de esto sale de la app.</strong> Los costos viven sólo en este dispositivo y no se sincronizan: son tuyos, y nadie con cuenta de producción los ve.</p>';
+    h += "</div>";
+    abrirHoja(h);
+  }
+
+  /* ---------- Exportar ---------- */
+
+  function csv(){
+    var r = calcular(), L = [];
+    L.push("HONGOS DEL SUR - COSTOS;" + hoyISO());
+    L.push("");
+    L.push("INSUMOS");
+    L.push("Nombre;Tipo;Formato;Unidad;Precio;Usos;Costo por unidad chica;Gasto al mes");
+    DB.ins.forEach(function(it){
+      L.push([it.nom, it.tipo === "reu" ? "reutilizable" : "consumible", cifra(it.fCant,3), it.fUni,
+              Math.round(it.precio||0), it.usos||0, cifra(costoUso(it),4),
+              Math.round(r.gastoIns[it.id]||0)].join(";"));
+    });
+    L.push("");
+    L.push("ETAPAS");
+    L.push("N;Etapa;Rinde;Unidad;Horas;Merma %;Costo por unidad;Tandas al mes");
+    DB.eta.forEach(function(e){
+      var s = r.C[e.k] || {ins:0,luz:0,otr:0,hor:0};
+      L.push([e.k, e.n, cifra(e.rinde,2), e.uni, cifra(e.horas,2), cifra(e.perdida,1),
+              Math.round((s.ins+s.luz+s.otr) + s.hor*r.valorHora), cifra(r.tandas[e.k]||0,2)].join(";"));
+    });
+    L.push("");
+    L.push("COSTO DEL KILO FRESCO");
+    L.push("Insumos y envases;" + Math.round(r.fresco.ins + r.fresco.otr));
+    L.push("Electricidad;" + Math.round(r.fresco.luz));
+    L.push("Mano de obra;" + Math.round(r.fresco.mano));
+    L.push("Gastos fijos;" + Math.round(r.fresco.fijo));
+    L.push("TOTAL;" + Math.round(r.fresco.total));
+    L.push("");
+    L.push("Horas al mes;" + cifra(r.horasMes,1));
+    L.push("Valor de la hora;" + Math.round(r.valorHora));
+    L.push("Kilos al mes;" + cifra(r.kgMes,2));
+    descargar("costos-" + hoyISO() + ".csv", "﻿" + L.join("\r\n"), "text/csv");
+  }
+
+  function restaurar(){
+    var inp = document.createElement("input");
+    inp.type = "file"; inp.accept = "application/json,.json";
+    inp.onchange = function(){
+      var f = inp.files && inp.files[0];
+      if(!f) return;
+      var lector = new FileReader();
+      lector.onload = function(){
+        try{
+          var d = JSON.parse(String(lector.result));
+          if(!d || !d.ins || !d.eta || !d.cfg) throw 0;
+          if(!confirm("Esto reemplaza los costos que tienes ahora. ¿Seguir?")) return;
+          DB = normalizar(d);
+          guardar(); cerrarHoja(); pintar();
+          avisar("Costos restaurados");
+        }catch(e){ avisar("Ese archivo no es un respaldo de costos"); }
+      };
+      lector.readAsText(f);
+    };
+    inp.click();
+  }
+
+  /* ---------- Eventos ----------
+     Los prefijos data-k* son propios: el inventario escucha data-d y data-act,
+     el cotizador data-c*, y sin separarlos se pisan entre sí. */
+
+  document.addEventListener("click", function(ev){
+    if(!DB) return;
+    var el = ev.target.closest ? ev.target.closest("[data-kact],[data-ktab]") : null;
+    if(!el) return;
+
+    if(el.hasAttribute("data-ktab")){ irSub(el.getAttribute("data-ktab")); return; }
+
+    var act = el.getAttribute("data-kact");
+    var ek  = el.getAttribute("data-ke");
+    var ki  = Number(el.getAttribute("data-ki"));
+    var kid = el.getAttribute("data-kid");
+
+    switch(act){
+      case "abrir":
+        abierta[ek] = !abierta[ek];
+        pintar();
+        break;
+
+      case "irInsumos": irSub("insumos"); break;
+
+      /* Líneas */
+      case "linea": hojaLinea(ek, ki); break;
+      case "nueva": hojaLinea(ek, -1, el.getAttribute("data-kv")); break;
+      case "lineaGuardar": {
+        var e = etaPorK(ek);
+        if(!e) break;
+        var t = el.getAttribute("data-kv");
+        var l = ki >= 0 ? e.lin[ki] : lineaNueva(t);
+        var modo = val("kl_modo");
+        if(t === "i"){
+          l.id = val("kl_id");
+          l.cant = nval("kl_cant");
+          l.uni = val("kl_uni");
+          l.pu = modo === "unidad";
+        }else if(t === "e"){
+          var destino = val("kl_ek");
+          if(!destino){ avisar("Elige la etapa que se consume"); break; }
+          if(creaCiclo(ek, destino)){ avisar("Esa etapa ya depende de ésta: se armaría un círculo"); break; }
+          l.ek = destino;
+          l.alc = modo === "alcT" || modo === "alcU";
+          l.pu  = modo === "unidad" || modo === "alcU";
+          var c = nval("kl_cant");
+          l.cant = l.alc ? (c > 0 ? 1/c : 0) : c;
+        }else if(t === "l"){
+          l.n = val("kl_n").trim() || "Equipo";
+          l.w = nval("kl_w"); l.hDia = nval("kl_hDia"); l.dias = nval("kl_dias"); l.duty = nval("kl_duty");
+        }else{
+          l.n = val("kl_n").trim() || "Otro gasto";
+          l.m = nval("kl_m");
+          l.pu = modo === "unidad";
+        }
+        if(ki < 0) e.lin.push(l);
+        abierta[ek] = true;
+        guardar(); cerrarHoja(); pintar();
+        break;
+      }
+      case "lineaBorrar": {
+        var e2 = etaPorK(ek);
+        if(e2) e2.lin.splice(ki, 1);
+        guardar(); cerrarHoja(); pintar();
+        break;
+      }
+
+      /* Etapas */
+      case "etapa": hojaEtapa(ek); break;
+      case "etapaNueva": hojaEtapa(""); break;
+      case "etapaGuardar": {
+        var nom = val("ke_n").trim();
+        if(!nom){ avisar("Ponle un nombre a la etapa"); break; }
+        var datos = {
+          n:nom, d:val("ke_d").trim(), uni:val("ke_uni").trim() || "unidades",
+          rinde:nval("ke_rinde"), horas:nval("ke_horas"),
+          perdida:Math.min(99, Math.max(0, nval("ke_perdida")))
+        };
+        if(ek){
+          var ee = etaPorK(ek);
+          if(ee) for(var kk in datos) ee[kk] = datos[kk];
+        }else{
+          var n = 1;
+          while(etaPorK(String(n))) n++;
+          datos.k = String(n); datos.lin = [];
+          DB.eta.push(datos);
+          abierta[datos.k] = true;
+        }
+        guardar(); cerrarHoja(); pintar();
+        break;
+      }
+      case "etapaBorrar": {
+        var usada = [];
+        DB.eta.forEach(function(x){
+          x.lin.forEach(function(l2){ if(l2.t === "e" && l2.ek === ek) usada.push(x.n); });
+        });
+        if(usada.length){ avisar("La usa " + usada[0] + ": quita esa línea primero"); break; }
+        if(!confirm("¿Eliminar la etapa y todas sus líneas?")) break;
+        DB.eta = DB.eta.filter(function(x){ return x.k !== ek; });
+        guardar(); cerrarHoja(); pintar();
+        break;
+      }
+
+      /* Insumos */
+      case "ins": hojaInsumo(kid); break;
+      case "insNuevo": hojaInsumo(""); break;
+      case "insGuardar": {
+        var nom2 = val("ki_nom").trim();
+        if(!nom2){ avisar("Ponle un nombre al insumo"); break; }
+        var d2 = {
+          nom:nom2, tipo:val("ki_tipo"), fCant:Math.max(0, nval("ki_cant")), fUni:val("ki_uni"),
+          precio:Math.max(0, nval("ki_precio")), usos:Math.max(0, nval("ki_usos")), prov:val("ki_prov").trim()
+        };
+        if(!d2.fCant){ avisar("El formato no puede ser cero"); break; }
+        if(kid){
+          var it2 = insPorId(kid);
+          if(it2) for(var k3 in d2) it2[k3] = d2[k3];
+        }else{
+          d2.id = nuevoId();
+          DB.ins.push(d2);
+        }
+        guardar(); cerrarHoja(); pintar();
+        break;
+      }
+      case "insBorrar": {
+        var en = [];
+        DB.eta.forEach(function(x){
+          x.lin.forEach(function(l3){ if(l3.t === "i" && l3.id === kid) en.push(x.n); });
+        });
+        if(en.length){ avisar("Se usa en " + en[0] + ": quítalo de ahí primero"); break; }
+        DB.ins = DB.ins.filter(function(x){ return x.id !== kid; });
+        guardar(); cerrarHoja(); pintar();
+        break;
+      }
+
+      /* Gastos fijos */
+      case "fijo": hojaFijo(ki); break;
+      case "fijoNuevo": hojaFijo(-1); break;
+      case "fijoGuardar": {
+        var g2 = {n:val("kf_n").trim() || "Gasto", m:Math.max(0, nval("kf_m"))};
+        if(ki >= 0) DB.cfg.fijos[ki] = g2; else DB.cfg.fijos.push(g2);
+        guardar(); cerrarHoja(); pintar();
+        break;
+      }
+      case "fijoBorrar":
+        DB.cfg.fijos.splice(ki, 1);
+        guardar(); cerrarHoja(); pintar();
+        break;
+
+      /* Datos reales de los lotes */
+      case "usarRend": {
+        var g3 = Number(el.getAttribute("data-kv")) || 0;
+        var e6 = etaPorK("6");
+        if(!e6 || !g3){ avisar("No se pudo aplicar"); break; }
+        var bolsas = 0;
+        e6.lin.forEach(function(l4){ if(l4.t === "e") bolsas += cantTanda(l4, e6); });
+        if(!bolsas){ avisar("La etapa 6 no toma bolsas de ninguna etapa"); break; }
+        e6.rinde = Math.round(bolsas * g3 / 1000 * 100) / 100;
+        guardar(); pintar();
+        avisar("Rendimiento actualizado: " + cifra(g3,0) + " g por bolsa");
+        break;
+      }
+      case "usarCont": {
+        var p = Number(el.getAttribute("data-kv")) || 0;
+        var e5 = etaPorK("5");
+        if(!e5){ avisar("No se pudo aplicar"); break; }
+        e5.perdida = Math.round(p*10)/10;
+        guardar(); pintar();
+        avisar("Merma de la inoculación: " + pct(p));
+        break;
+      }
+
+      /* Datos */
+      case "respaldo":
+        descargar("respaldo-costos-" + hoyISO() + ".json", JSON.stringify(DB, null, 1), "application/json");
+        break;
+      case "restaurar": restaurar(); break;
+      case "csv": csv(); break;
+      case "ayuda": hojaAyuda(); break;
+      case "reset":
+        if(!confirm("Vuelve todo a los valores iniciales y borra los precios que cargaste.\n\n¿Seguro?")) break;
+        DB = semilla();
+        guardar(); pintar();
+        avisar("Costos reiniciados");
+        break;
+    }
+  });
+
+  // Escribir no repinta: se pierde el foco y el cursor. Se guarda y se refresca
+  // sólo la cifra de la cabecera.
+  document.addEventListener("input", function(ev){
+    if(!DB) return;
+    var el = ev.target;
+    if(!el.getAttribute) return;
+
+    if(el.id === "kBuscar"){
+      filtroIns = el.value;
+      var pos = el.selectionStart;
+      pintar();
+      var n = document.getElementById("kBuscar");
+      if(n){ n.focus(); try{ n.setSelectionRange(pos, pos); }catch(e){} }
+      return;
+    }
+
+    var pre = el.getAttribute("data-kpre");
+    if(pre){
+      var it = insPorId(pre);
+      if(it){ it.precio = Math.max(0, aNum(el.value)); guardar(); cabecera(calcular()); }
+      return;
+    }
+
+    var g = el.getAttribute("data-kg");
+    if(g){
+      if(g === "modoHora"){ DB.cfg.modoHora = el.value; guardar(); pintar(); return; }
+      if(g === "netear"){ DB.cfg.netear = el.value === "1"; guardar(); pintar(); return; }
+      if(g === "finFresco" || g === "finSeco" || g === "etapaPlan"){ DB.cfg[g] = el.value; guardar(); pintar(); return; }
+      DB.cfg[g] = Math.max(0, aNum(el.value));
+      guardar();
+      cabecera(calcular());
+      return;
+    }
+  });
+
+  // Al salir de un campo sí se repinta: ahí ya no molesta y todo queda al día.
+  document.addEventListener("change", function(ev){
+    if(!DB || vista !== "costos") return;
+    var el = ev.target;
+    if(!el.getAttribute) return;
+    if(el.getAttribute("data-kpre") || (el.getAttribute("data-kg") && el.tagName === "INPUT")) pintar();
+  });
+
+  /* ---------- Ciclos ----------
+     Si la etapa `origen` ya está aguas arriba de `destino`, sumarla como
+     insumo armaría un círculo y el costo no convergería nunca. */
+
+  function creaCiclo(origen, destino){
+    if(origen === destino) return true;
+    var visto = {};
+    function baja(k){
+      if(k === origen) return true;
+      if(visto[k]) return false;
+      visto[k] = 1;
+      var e = etaPorK(k);
+      if(!e) return false;
+      for(var i=0;i<e.lin.length;i++){
+        if(e.lin[i].t === "e" && baja(e.lin[i].ek)) return true;
+      }
+      return false;
+    }
+    return baja(destino);
+  }
+
+  /* ---------- Arranque del módulo ---------- */
+
+  DB = cargar();
+  guardar();
+
+  return {
+    pintar: pintar,
+    // Para el resto de la app: cuánto cuesta el kilo, por si algún día lo usa
+    // el cotizador o el resumen.
+    costoKilo: function(){ return calcular().fresco.total; }
+  };
+})();
+
+/* ============================================================
+   20. Eventos
+   ============================================================ */
+
+var VISTAS = ["conteo","lotes","ficha","resumen","insumos","cotiza","costos"];
 
 function render(){
   if(vista === "conteo")  pintarConteo();
@@ -5470,6 +7105,7 @@ function render(){
   if(vista === "resumen") pintarResumen();
   if(vista === "insumos") pintarInsumos();
   if(vista === "cotiza")  COT.pintar();
+  if(vista === "costos")  COS.pintar();
   document.getElementById("progWrap").hidden = vista !== "conteo";
   actualizarProgreso();
 }
@@ -5486,7 +7122,7 @@ function irA(t){
   });
 
   var l = t === "ficha" ? lotePorId(loteAbierto) : null;
-  var titulos = {conteo:"Inventario", lotes:"Lotes", resumen:"Resumen", insumos:"Insumos", cotiza:"Cotizador"};
+  var titulos = {conteo:"Inventario", lotes:"Lotes", resumen:"Resumen", insumos:"Insumos", cotiza:"Cotizador", costos:"Costos"};
   document.getElementById("hTitle").textContent = l ? l.cod : (titulos[t] || "Inventario");
   document.getElementById("hSub").textContent   = l ? nomLote(l) : "Hongos del Sur";
   document.getElementById("hMark").hidden   = t === "ficha";
@@ -5498,8 +7134,8 @@ function irA(t){
 }
 
 // Con rol de producción, las pestañas de inventario no se muestran. El cotizador
-// tampoco: son precios, clientes y márgenes, y eso es del dueño.
-var SOLO_DUENO = ["conteo","insumos","cotiza"];
+// y los costos tampoco: son precios, clientes y márgenes, y eso es del dueño.
+var SOLO_DUENO = ["conteo","insumos","cotiza","costos"];
 function aplicarRol(){
   var soloProd = NUBE.rol() === "produccion";
   SOLO_DUENO.forEach(function(k){
@@ -5835,7 +7471,7 @@ document.addEventListener("keydown", function(ev){
 window.addEventListener("hashchange", aplicarHash);
 
 /* ============================================================
-   20. Arranque
+   21. Arranque
    ============================================================ */
 
 try{
