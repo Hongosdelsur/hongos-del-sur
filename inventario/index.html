@@ -1956,17 +1956,46 @@ function pedirFotos(cb){
   inp.click();
 }
 
+// Conversiones entre lo que guarda el teléfono (texto) y lo que viaja (bytes).
+function aBlob(dataURL){
+  var partes = String(dataURL).split(","), tipo = (/:(.*?);/.exec(partes[0]) || [])[1] || "image/jpeg";
+  var bin = atob(partes[1]), n = bin.length, u8 = new Uint8Array(n);
+  while(n--) u8[n] = bin.charCodeAt(n);
+  return new Blob([u8], {type:tipo});
+}
+function rutaFoto(id){ return "fotos-lotes/" + id + ".jpg"; }
+
+// Primero se busca en el teléfono; si no está, se baja de la nube y queda
+// guardada. Se baja solo lo que de verdad se mira, para no gastar datos.
+function traerFoto(id, cb){
+  FOTOS.leer(id, function(d){
+    if(d){ cb(d); return; }
+    if(!NUBE.sesion()){ cb(null); return; }
+    NUBE.bajarArchivo(rutaFoto(id), function(err, blob){
+      if(err || !blob){ cb(null); return; }
+      var lector = new FileReader();
+      lector.onload = function(){
+        var dato = String(lector.result);
+        FOTOS.guardar(id, dato, function(){});
+        cb(dato);
+      };
+      lector.onerror = function(){ cb(null); };
+      lector.readAsDataURL(blob);
+    });
+  });
+}
+
 // Rellena las <img data-foto> que estén en pantalla.
 function cargarFotos(raiz){
   Array.prototype.forEach.call((raiz || document).querySelectorAll("img[data-foto]"), function(img){
     if(img.getAttribute("src")) return;
-    FOTOS.leer(img.dataset.foto, function(d){ if(d) img.src = d; });
+    traerFoto(img.dataset.foto, function(d){ if(d) img.src = d; });
   });
 }
 
 function verFoto(id){
-  FOTOS.leer(id, function(d){
-    if(!d){ avisar("No se encontró la foto"); return; }
+  traerFoto(id, function(d){
+    if(!d){ avisar("Esa foto todavía no llega a este dispositivo"); return; }
     document.getElementById("lupaImg").src = d;
     document.getElementById("lupa").classList.add("open");
     document.getElementById("lupa").dataset.foto = id;
@@ -1986,6 +2015,10 @@ function borrarFotoActual(){
     l.ev = l.ev.filter(function(e){ return !(e.t === "foto" && !e.fotos.length && !e.txt); });
   });
   FOTOS.borrar(id);
+  // También en la nube, si hay sesión. Un trabajador no tiene permiso para
+  // borrar archivos: la referencia igual desaparece y el error no molesta.
+  if(NUBE.sesion()) NUBE.borrarArchivo(rutaFoto(id), function(){});
+  SYNC.olvidarFoto(id);
   guardar();
   lupa.classList.remove("open");
   render();
@@ -2471,6 +2504,49 @@ var NUBE = (function(){
     if(cb) cb();
   }
 
+  /* --- Archivos (Storage). El bucket es privado: todo va con la sesión. --- */
+
+  function subirArchivo(ruta, blob, cb){
+    conToken(function(err, tok){
+      if(err){ cb(err); return; }
+      fetch(URL + "/storage/v1/object/" + ruta, {
+        method:"POST",
+        headers:{
+          apikey:KEY, Authorization:"Bearer " + tok,
+          "Content-Type": blob.type || "image/jpeg",
+          "x-upsert":"true"
+        },
+        body: blob
+      }).then(function(r){
+        if(r.ok){ cb(null); return; }
+        r.text().then(function(t){ cb(traducir(t) || ("Error " + r.status)); });
+      }, function(){ cb("Sin conexión"); });
+    });
+  }
+
+  function bajarArchivo(ruta, cb){
+    conToken(function(err, tok){
+      if(err){ cb(err, null); return; }
+      fetch(URL + "/storage/v1/object/" + ruta, {
+        headers:{apikey:KEY, Authorization:"Bearer " + tok}
+      }).then(function(r){
+        if(!r.ok){ cb("Error " + r.status, null); return; }
+        r.blob().then(function(b){ cb(null, b); });
+      }, function(){ cb("Sin conexión", null); });
+    });
+  }
+
+  function borrarArchivo(ruta, cb){
+    conToken(function(err, tok){
+      if(err){ cb && cb(err); return; }
+      fetch(URL + "/storage/v1/object/" + ruta, {
+        method:"DELETE",
+        headers:{apikey:KEY, Authorization:"Bearer " + tok}
+      }).then(function(r){ cb && cb(r.ok ? null : "Error " + r.status); },
+              function(){ cb && cb("Sin conexión"); });
+    });
+  }
+
   // Llamada a la base con la sesión ya renovada si hacía falta.
   function rest(ruta, opciones, cb){
     conToken(function(err, tok){
@@ -2524,6 +2600,9 @@ var NUBE = (function(){
     traerPerfil: traerPerfil,
     conToken: conToken,
     rest: rest,
+    subirArchivo: subirArchivo,
+    bajarArchivo: bajarArchivo,
+    borrarArchivo: borrarArchivo,
     llamar: llamar
   };
 })();
@@ -2564,7 +2643,11 @@ var SYNC = (function(){
     try{ localStorage.setItem(CLAVE, JSON.stringify(est)); }catch(e){}
   }
   function olvidar(){
-    est = {ultima:"1970-01-01T00:00:00Z", huellas:{}};
+    est = {ultima:"1970-01-01T00:00:00Z", huellas:{}, fotos:{}};
+    guardarEstado();
+  }
+  function olvidarFoto(id){
+    if(est.fotos) delete est.fotos[id];
     guardarEstado();
   }
 
@@ -2738,6 +2821,36 @@ var SYNC = (function(){
     est.huellas = nuevas;
   }
 
+  /* --- Fotografías: los bytes van aparte de las filas --- */
+
+  function idsFotos(){
+    var out = [];
+    DB.lotes.forEach(function(l){
+      l.ev.forEach(function(e){ (e.fotos || []).forEach(function(f){ out.push(f); }); });
+    });
+    return out;
+  }
+
+  // Se suben de a una, y la que falla se reintenta en la próxima sincronización.
+  function subirFotos(cb){
+    if(!est.fotos) est.fotos = {};
+    var faltan = idsFotos().filter(function(id){ return !est.fotos[id]; });
+    if(!faltan.length){ cb(0); return; }
+    var i = 0, hechas = 0;
+    (function paso(){
+      if(i >= faltan.length){ cb(hechas); return; }
+      var id = faltan[i++];
+      FOTOS.leer(id, function(dato){
+        // Si la foto no está en este teléfono es de otro: nada que subir.
+        if(!dato){ est.fotos[id] = 1; paso(); return; }
+        NUBE.subirArchivo(rutaFoto(id), aBlob(dato), function(err){
+          if(!err){ est.fotos[id] = 1; hechas++; }
+          paso();
+        });
+      });
+    })();
+  }
+
   /* --- La operación completa --- */
 
   function sincronizar(cb){
@@ -2772,7 +2885,11 @@ var SYNC = (function(){
         guardarEstado();
         guardar();
         render();
-        cb(null, {subidos:subidos, bajados:bajados});
+        // Las fotos van al final: pesan y no deben demorar lo que sí es urgente.
+        subirFotos(function(fotos){
+          if(fotos) guardarEstado();
+          cb(null, {subidos:subidos, bajados:bajados, fotos:fotos});
+        });
       });
     });
   }
@@ -2789,7 +2906,12 @@ var SYNC = (function(){
     sincronizar: sincronizar,
     pronto: pronto,
     hayPendientes: hayPendientes,
+    fotosPorSubir: function(){
+      if(!est.fotos) return idsFotos().length;
+      return idsFotos().filter(function(id){ return !est.fotos[id]; }).length;
+    },
     olvidar: olvidar,
+    olvidarFoto: olvidarFoto,
     cuando: function(){ return est.cuando; },
     error: function(){ return ultimoError; },
     ocupado: function(){ return enCurso; }
@@ -3377,16 +3499,18 @@ function hojaNube(){
   }
 
   if(rol === "dueno" || rol === "produccion"){
-    var pend = SYNC.hayPendientes(), cuando = SYNC.cuando(), err = SYNC.error();
+    var pend = SYNC.hayPendientes(), fpend = SYNC.fotosPorSubir(), cuando = SYNC.cuando(), err = SYNC.error();
     h += '<div class="card" style="margin-top:0"><div class="card__head"><h2 class="card__t">Sincronización</h2>';
-    h += '<span class="card__n">' + (pend ? pend + " por subir" : "al día") + "</span></div>";
+    h += '<span class="card__n">' + (pend || fpend
+      ? [pend ? pend + " por subir" : "", fpend ? fpend + " fotos" : ""].filter(Boolean).join(" · ")
+      : "al día") + "</span></div>";
     h += '<div class="card__body" style="padding-top:0"><p class="note" style="padding:0;margin-top:0">';
     h += cuando ? "Última vez: " + esc(new Date(cuando).toLocaleString("es-CL")) : "Todavía no se ha sincronizado en este teléfono.";
     if(err) h += '<br><span style="color:var(--crit)">Último intento: ' + esc(err) + "</span>";
     h += "</p>";
     h += '<button class="btn btn--primary" data-nact="sincronizar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-7.6-4.2M3 12a9 9 0 0 1 9-9 9 9 0 0 1 7.6 4.2"/><path d="M21 3v5h-5M3 21v-5h5"/></svg>Sincronizar ahora</button>';
     h += "</div></div>";
-    h += '<p class="note" style="margin-top:0">Las fotos todavía no viajan a la nube: por ahora quedan en el teléfono donde se tomaron.</p>';
+    h += '<p class="note" style="margin-top:0">Las fotos suben al final, después de los datos. En los otros dispositivos se bajan solas al abrir la ficha, así no se gastan datos en fotos que nadie mira.</p>';
   }
 
   if(rol === "dueno"){
@@ -3472,8 +3596,8 @@ function tocarNube(accion){
     avisar("Sincronizando…");
     SYNC.sincronizar(function(err, r){
       if(err){ avisar(err); hojaNube(); return; }
-      avisar(!r.subidos && !r.bajados ? "Todo estaba al día"
-           : "Listo · " + r.subidos + " subidos, " + r.bajados + " recibidos");
+      avisar(!r.subidos && !r.bajados && !r.fotos ? "Todo estaba al día"
+           : "Listo · " + r.subidos + " subidos, " + r.bajados + " recibidos" + (r.fotos ? ", " + r.fotos + " fotos" : ""));
       hojaNube();
     });
     return;
