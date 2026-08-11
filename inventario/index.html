@@ -407,6 +407,42 @@ button.buy:hover{background:var(--sand)}
 .acts .btn{padding:12px 9px;font-size:.85rem}
 .acts .full{grid-column:1 / -1}
 
+/* Tablero de bolsas */
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:6px;margin-top:11px}
+.bchip{
+  border:1px solid var(--line);background:var(--paper);border-radius:10px;
+  padding:6px 3px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;
+}
+.bchip__n{font-family:var(--f-mono);font-size:.58rem;color:var(--ink-faint);letter-spacing:.06em}
+.bchip__v{font-family:var(--f-mono);font-size:.84rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.bchip--ok{background:var(--ok-bg);border-color:transparent}
+.bchip--ok .bchip__v{color:var(--ok)}
+.bchip--desc{background:var(--crit-bg);border-color:transparent}
+.bchip--desc .bchip__v,.bchip--desc .bchip__n{color:var(--crit)}
+.bchip:hover{border-color:var(--accent)}
+
+/* Fila de pesaje bolsa por bolsa */
+.brow{display:flex;align-items:center;gap:11px;padding:8px 0;border-top:1px solid var(--line-soft)}
+.brow:first-child{border-top:0}
+.brow__n{
+  font-family:var(--f-mono);font-size:.72rem;font-weight:600;color:var(--ink-soft);
+  width:34px;height:34px;flex:none;border-radius:9px;background:var(--sand);display:grid;place-items:center;
+}
+.brow.tiene .brow__n{background:var(--ok-bg);color:var(--ok)}
+.brow.fuera .brow__n{background:var(--crit-bg);color:var(--crit)}
+.brow__c{flex:1;display:flex;align-items:center;gap:8px}
+.brow input{
+  flex:1;min-width:0;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--cream);
+  padding:0 11px;text-align:right;font-family:var(--f-mono);font-size:.92rem;font-variant-numeric:tabular-nums;
+}
+.brow__u{font-family:var(--f-mono);font-size:.7rem;color:var(--ink-faint);width:18px;flex:none}
+.btot{
+  position:sticky;bottom:0;background:var(--paper);border-top:1px solid var(--line);
+  margin-top:6px;padding:11px 0 3px;display:flex;justify-content:space-between;align-items:baseline;
+  font-family:var(--f-mono);font-size:.78rem;color:var(--ink-soft);
+}
+.btot b{font-size:1.02rem;color:var(--ink)}
+
 /* Línea de tiempo del lote */
 .ev{display:flex;gap:10px;width:100%;text-align:left;background:none;border:0;padding:11px 0;border-top:1px solid var(--line-soft)}
 .ev:first-child{border-top:0}
@@ -462,6 +498,8 @@ button.buy:hover{background:var(--sand)}
 .et--s .et__cod{font-size:8.4pt}
 .et__f{font-family:var(--f-mono);font-size:6.2pt;color:#333;margin-top:1.2mm;white-space:nowrap}
 .et--s .et__f{font-size:5pt;margin-top:.8mm}
+.et__b{font-family:var(--f-mono);font-size:6.6pt;font-weight:700;color:#111;margin-top:.9mm;letter-spacing:.04em}
+.et--s .et__b{font-size:5.4pt;margin-top:.6mm}
 .et__qr{flex:none;width:21mm;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
 .et--s .et__qr{width:17mm}
 .et__qr svg{width:21mm;height:21mm;display:block}
@@ -1136,6 +1174,27 @@ function bloqueProduccion(){
     h += "</div>";
   }
 
+  // Cuánto esperar de una bolsa, que es lo que permite planificar una tanda.
+  var pc = promedioPorCepa();
+  if(pc.length){
+    var medidas = pc.filter(function(f){ return f.medido; }).length;
+    h += '<div class="card"><div class="card__head"><h2 class="card__t">Cuánto da cada bolsa</h2>';
+    h += '<span class="card__n">por hongo y cepa</span></div>';
+    pc.forEach(function(f){
+      h += '<div class="buy">';
+      h += '<div class="buy__t"><div class="buy__n">' + esc(f.n) + "</div>";
+      h += '<div class="buy__m">' + (f.medido
+        ? f.bolsas + " bolsas pesadas una a una · " + Math.round(f.min) + "–" + Math.round(f.max) + " g"
+        : "estimado del total de " + f.lotes + (f.lotes === 1 ? " lote" : " lotes")) + "</div></div>";
+      h += '<div class="buy__q">' + Math.round(f.prom) + "<small>g/bolsa</small></div></div>";
+    });
+    h += '<div class="card__body" style="padding-top:12px"><p class="note" style="padding:0;margin:0">' +
+      (medidas ? "Las cepas con bolsas pesadas una a una muestran además el rango entre la peor y la mejor. "
+               : "Por ahora todo es estimación: divide lo cosechado por las bolsas del lote. ") +
+      "Para medir de verdad, crea el lote con registro <em>bolsa por bolsa</em>.</p></div>";
+    h += "</div>";
+  }
+
   var pe = porEspecie(90);
   if(pe.filas.length){
     h += '<div class="card"><div class="card__head"><h2 class="card__t">Producción por hongo</h2>';
@@ -1325,11 +1384,104 @@ function evsOrden(l){
     .sort(function(a,b){ return a.e.f === b.e.f ? a.i - b.i : (a.e.f < b.e.f ? -1 : 1); })
     .map(function(x){ return x.e; });
 }
+// Una cosecha con número de bolsa (`b`) es de esa bolsa; sin él, del lote entero.
+// Las dos formas conviven y suman al mismo total.
 function cosechas(l){ return evsOrden(l).filter(function(e){ return e.t === "cos"; }); }
+function cosechasLote(l){ return cosechas(l).filter(function(e){ return !e.b; }); }
+function cosechasBolsa(l){ return cosechas(l).filter(function(e){ return !!e.b; }); }
 function kgLote(l){
   var t = 0;
   l.ev.forEach(function(e){ if(e.t === "cos") t += Number(e.kg) || 0; });
   return t;
+}
+
+/* --- Seguimiento bolsa por bolsa --- */
+
+function cosechaDe(l, bolsa, oleada){
+  return l.ev.filter(function(e){
+    return e.t === "cos" && Number(e.b) === Number(bolsa) && Number(e.o) === Number(oleada);
+  })[0];
+}
+function bolsaDescartada(l, n){
+  return l.ev.some(function(e){ return e.t === "cont" && Number(e.b) === Number(n); });
+}
+// Hasta dónde llega la numeración: las bolsas declaradas, o más si quedaron registros.
+function totalBolsas(l){
+  var max = Number(l.bolsas) || 0;
+  l.ev.forEach(function(e){ if(e.b && Number(e.b) > max) max = Number(e.b); });
+  return max;
+}
+function oleadasBolsa(l){
+  var os = {};
+  cosechasBolsa(l).forEach(function(e){ os[Number(e.o) || 1] = true; });
+  var ks = Object.keys(os).map(Number).sort(function(a,b){ return a-b; });
+  return ks;
+}
+function siguienteOleada(l){
+  var os = oleadasBolsa(l);
+  return os.length ? os[os.length-1] : 1;
+}
+// Oleadas de verdad: las del lote entero más las que se pesaron bolsa por bolsa.
+// Veinte bolsas de la misma tanda son una oleada, no veinte.
+function numOleadas(l){ return cosechasLote(l).length + oleadasBolsa(l).length; }
+
+// Kilos acumulados de cada bolsa con registro propio, y su estadística.
+function statsBolsas(l){
+  var mapa = {};
+  l.ev.forEach(function(e){
+    if(e.t !== "cos" || !e.b) return;
+    var n = Number(e.b);
+    mapa[n] = (mapa[n] || 0) + (Number(e.kg) || 0);
+  });
+  var nums = Object.keys(mapa).map(Number).sort(function(a,b){ return a - b; });
+  var pesos = nums.map(function(n){ return mapa[n]; });
+  var total = 0, min = null, max = null;
+  pesos.forEach(function(p){
+    total += p;
+    if(min == null || p < min) min = p;
+    if(max == null || p > max) max = p;
+  });
+  return {
+    mapa: mapa, nums: nums, pesos: pesos, n: pesos.length, total: total,
+    prom: pesos.length ? total / pesos.length : null, min: min, max: max
+  };
+}
+
+// Promedio por bolsa agrupado por hongo y cepa: lo que sirve para saber qué esperar.
+// Si una cepa tiene bolsas medidas una a una, manda esa medición; si no, se estima
+// dividiendo lo del lote por sus bolsas, y queda marcado como estimación.
+function promedioPorCepa(){
+  var m = {};
+  DB.lotes.forEach(function(l){
+    var clave = nomLote(l) + (l.cepa ? " · " + l.cepa : "");
+    var g = m[clave];
+    if(!g) g = m[clave] = {n:clave, pesos:[], kg:0, bolsas:0, lotes:0};
+    g.lotes++;
+    var s = statsBolsas(l);
+    if(s.n){
+      s.pesos.forEach(function(p){ g.pesos.push(p); });
+    } else {
+      var k = kgLote(l), b = bolsasVivas(l);
+      if(k > 0 && b > 0){ g.kg += k; g.bolsas += b; }
+    }
+  });
+  var filas = [];
+  for(var k in m){
+    var g = m[k], fila = null;
+    if(g.pesos.length){
+      var t = 0, mn = null, mx = null;
+      g.pesos.forEach(function(p){
+        t += p;
+        if(mn == null || p < mn) mn = p;
+        if(mx == null || p > mx) mx = p;
+      });
+      fila = {n:g.n, prom:(t/g.pesos.length)*1000, bolsas:g.pesos.length, min:mn*1000, max:mx*1000, medido:true, lotes:g.lotes};
+    } else if(g.bolsas){
+      fila = {n:g.n, prom:(g.kg/g.bolsas)*1000, bolsas:g.bolsas, medido:false, lotes:g.lotes};
+    }
+    if(fila) filas.push(fila);
+  }
+  return filas.sort(function(a,b){ return b.prom - a.prom; });
 }
 function descartadas(l){
   var t = 0;
@@ -1482,6 +1634,7 @@ function pintarLotes(){
     h += '<span class="lote__nom">' + esc(nomLote(l)) + (l.cepa ? ' <span style="color:var(--ink-faint);font-weight:400">· ' + esc(l.cepa) + "</span>" : "") + "</span>";
     h += '<span class="lote__m"><span class="est est--' + l.est + '">' + esc(est.n) + "</span>";
     h += "<span>" + bolsasVivas(l) + " bolsas</span>";
+    if(l.porBolsa) h += "<span>" + statsBolsas(l).n + "/" + totalBolsas(l) + " pesadas</span>";
     if(l.finoc) h += "<span>día " + Math.max(0, diasEntre(l.finoc, hoy)) + "</span>";
     if(e) h += '<span class="' + (e.f <= hoy ? "tarde" : "") + '">' + (e.f <= hoy ? "cosechar ya" : "≈ " + fechaCorta(e.f)) + "</span>";
     h += "</span></span>";
@@ -1506,11 +1659,15 @@ var ICO_EV = {
 function tituloEvento(l, e){
   if(e.t === "est")  return "Pasó a " + estDe(e.a).n;
   if(e.t === "cos"){
-    var cs = cosechas(l), i = 0;
+    if(e.b) return "Bolsa " + e.b + " · " + (e.o || 1) + "ª oleada · " + kg(e.kg) + " kg";
+    var cs = cosechasLote(l), i = 0;
     for(var k=0; k<cs.length; k++) if(cs[k].id === e.id) i = k+1;
     return "Cosecha " + (i ? i + "ª oleada · " : "") + kg(e.kg) + " kg";
   }
-  if(e.t === "cont") return "Descarte de " + (Number(e.n)||0) + " bolsas";
+  if(e.t === "cont"){
+    if(e.b) return "Bolsa " + e.b + " descartada";
+    return "Descarte de " + (Number(e.n)||0) + " bolsas";
+  }
   if(e.t === "nota") return "Observación";
   return "Fotografía";
 }
@@ -1522,7 +1679,7 @@ function pintarFicha(){
     return;
   }
   var hoy = hoyISO(), e = estimado(l), k = kgLote(l), rb = rendBolsa(l), rp = rendPct(l);
-  var cs = cosechas(l), desc = descartadas(l);
+  var nOl = numOleadas(l), desc = descartadas(l);
 
   var h = '<div class="ficha">';
   h += '<div class="ficha__cod">' + esc(l.cod) + "</div>";
@@ -1542,22 +1699,61 @@ function pintarFicha(){
   h += "</div>";
 
   h += '<div class="tiles">';
-  h += '<div class="tile"><div class="tile__k">Producción acumulada</div><div class="tile__v">' + kg(k) + '</div><div class="tile__s">kg en ' + cs.length + (cs.length === 1 ? " oleada" : " oleadas") + "</div></div>";
-  h += '<div class="tile"><div class="tile__k">Rendimiento</div><div class="tile__v">' + (rb == null ? "—" : Math.round(rb)) + '</div><div class="tile__s">' + (rb == null ? "falta cosechar" : "gramos por bolsa") + "</div></div>";
+  h += '<div class="tile"><div class="tile__k">Producción acumulada</div><div class="tile__v">' + kg(k) + '</div><div class="tile__s">kg en ' + nOl + (nOl === 1 ? " oleada" : " oleadas") + "</div></div>";
+  h += '<div class="tile"><div class="tile__k">Rendimiento</div><div class="tile__v">' + (rb == null ? "—" : Math.round(rb)) + '</div><div class="tile__s">' + (rb == null ? "falta cosechar" : "g por bolsa del lote") + "</div></div>";
   h += '<div class="tile"><div class="tile__k">Bolsas</div><div class="tile__v">' + bolsasVivas(l) + '</div><div class="tile__s">' + (desc ? desc + " descartadas de " + (Number(l.bolsas)||0) : "sin descartes") + "</div></div>";
   var pieRp = rp != null ? "fresco sobre " + num(bolsasVivas(l)*l.peso) + " kg"
             : !l.peso ? "carga el peso por bolsa" : "falta cosechar";
   h += '<div class="tile' + (rp != null && rp < 10 ? " tile--warn" : "") + '"><div class="tile__k">Sobre sustrato</div><div class="tile__v">' + (rp == null ? "—" : num(rp) + "%") + '</div><div class="tile__s">' + pieRp + "</div></div>";
   h += "</div>";
 
+  var ICO_CESTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18l-1.7 10.2a2 2 0 0 1-2 1.8H6.7a2 2 0 0 1-2-1.8Z"/><path d="M8.5 9V6.5a3.5 3.5 0 0 1 7 0V9"/></svg>';
+
   h += '<div class="acts">';
-  h += '<button class="btn btn--primary full" data-lact="cos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18l-1.7 10.2a2 2 0 0 1-2 1.8H6.7a2 2 0 0 1-2-1.8Z"/><path d="M8.5 9V6.5a3.5 3.5 0 0 1 7 0V9"/></svg>Registrar cosecha</button>';
+  if(l.porBolsa){
+    h += '<button class="btn btn--primary full" data-lact="bolsas">' + ICO_CESTA + "Cosechar por bolsa</button>";
+    h += '<button class="btn btn--ghost full" data-lact="cos">' + ICO_CESTA + "Cosecha del lote entero</button>";
+  } else {
+    h += '<button class="btn btn--primary full" data-lact="cos">' + ICO_CESTA + "Registrar cosecha</button>";
+  }
   h += '<button class="btn btn--ghost" data-lact="est"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m10.5 8.5 3.5 3.5-3.5 3.5"/></svg>Cambiar estado</button>';
   h += '<button class="btn btn--ghost" data-lact="etiq"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14h1M17 20h4M14 20h.01"/></svg>Etiqueta y QR</button>';
   h += '<button class="btn btn--ghost" data-lact="foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3.2l1.8-2h6l1.8 2H20v11H4Z"/><circle cx="12" cy="13" r="3.2"/></svg>Foto</button>';
   h += '<button class="btn btn--ghost" data-lact="nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2Z"/></svg>Observación</button>';
   h += '<button class="btn btn--danger full" data-lact="cont"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.9 18.1A2 2 0 0 0 3.6 21h16.8a2 2 0 0 0 1.7-2.9L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4.5M12 17.5h.01"/></svg>Contaminación o descarte</button>';
   h += "</div>";
+
+  // Tablero de bolsas: una casilla por bolsa, con lo que lleva cosechado en gramos.
+  if(l.porBolsa){
+    var sb = statsBolsas(l), tot = totalBolsas(l), kgL = kgLote(l);
+    h += '<div class="card"><div class="card__head"><h2 class="card__t">Bolsa por bolsa</h2>';
+    h += '<span class="card__n">' + sb.n + " de " + tot + " pesadas</span></div>";
+    h += '<div class="card__body">';
+
+    if(sb.n){
+      h += '<div class="tiles" style="margin-top:0;grid-template-columns:repeat(3,1fr)">';
+      h += '<div class="tile"><div class="tile__k">Promedio</div><div class="tile__v">' + Math.round(sb.prom*1000) + '</div><div class="tile__s">g por bolsa pesada</div></div>';
+      h += '<div class="tile"><div class="tile__k">La mejor</div><div class="tile__v">' + Math.round(sb.max*1000) + '</div><div class="tile__s">gramos</div></div>';
+      h += '<div class="tile"><div class="tile__k">La peor</div><div class="tile__v">' + Math.round(sb.min*1000) + '</div><div class="tile__s">gramos</div></div>';
+      h += "</div>";
+    }
+
+    h += '<div class="bgrid">';
+    for(var nb=1; nb<=tot; nb++){
+      var kgb = sb.mapa[nb], fuera = bolsaDescartada(l, nb);
+      var cls = fuera ? " bchip--desc" : (kgb != null ? " bchip--ok" : "");
+      h += '<button class="bchip' + cls + '" data-lbolsa="' + nb + '">';
+      h += '<span class="bchip__n">' + nb + "</span>";
+      h += '<span class="bchip__v">' + (fuera ? "—" : (kgb != null ? Math.round(kgb*1000) : "·")) + "</span></button>";
+    }
+    h += "</div>";
+
+    var kgSueltos = kgL - sb.total;
+    h += '<p class="note" style="padding:0">Los números son gramos acumulados de cada bolsa. Toca una para ver o anotar lo suyo.';
+    if(kgSueltos > 0.01) h += " De los " + kg(kgL) + " kg del lote, " + kg(kgSueltos) + " kg están anotados como cosecha del lote entero y no por bolsa.";
+    h += "</p>";
+    h += "</div></div>";
+  }
 
   if(l.obs){
     h += '<div class="card"><div class="card__head"><h2 class="card__t">Observaciones</h2></div>';
@@ -1579,7 +1775,27 @@ function pintarFicha(){
   if(!l.ev.length){
     h += '<div class="empty">Todavía sin movimientos.</div>';
   } else {
+    // Las cosechas por bolsa se juntan en una sola línea por fecha y oleada:
+    // 28 bolsas no pueden ser 28 renglones del historial.
+    var yaVisto = {};
     evsOrden(l).reverse().forEach(function(ev){
+      if(ev.t === "cos" && ev.b){
+        var ol = Number(ev.o) || 1, clave = ev.f + "|" + ol;
+        if(yaVisto[clave]) return;
+        yaVisto[clave] = true;
+        var grupo = l.ev.filter(function(x){
+          return x.t === "cos" && x.b && x.f === ev.f && (Number(x.o)||1) === ol;
+        });
+        var suma = 0;
+        grupo.forEach(function(x){ suma += Number(x.kg) || 0; });
+        h += '<button class="ev ev--cos" data-lgrupo="' + esc(ev.f) + '" data-lol="' + ol + '">';
+        h += '<span class="ev__i">' + ICO_EV.cos + "</span>";
+        h += '<span class="ev__b"><span class="ev__t">Cosecha por bolsa · ' + ol + "ª oleada · " + kg(suma) + " kg</span>";
+        h += '<span class="ev__d">' + esc(fechaAnio(ev.f)) + " · " + grupo.length + (grupo.length === 1 ? " bolsa" : " bolsas") +
+             " · promedio " + Math.round((suma/grupo.length)*1000) + " g</span>";
+        h += "</span></button>";
+        return;
+      }
       h += '<button class="ev ev--' + ev.t + '" data-lev="' + esc(ev.id) + '">';
       h += '<span class="ev__i">' + ICO_EV[ev.t] + "</span>";
       h += '<span class="ev__b"><span class="ev__t">' + esc(tituloEvento(l, ev)) + "</span>";
@@ -2046,17 +2262,18 @@ function baseURL(){
   }
   return "";
 }
-function urlLote(l){
+// Con número de bolsa, el QR abre directo el pesaje de esa bolsa.
+function urlLote(l, bolsa){
   var b = baseURL();
-  if(!b) return l.cod;                                   // sin dirección, el QR lleva solo el código
-  return b.split("#")[0] + "#/l/" + encodeURIComponent(l.cod);
+  if(!b) return l.cod + (bolsa ? " · bolsa " + bolsa : "");   // sin dirección, solo el texto
+  return b.split("#")[0] + "#/l/" + encodeURIComponent(l.cod) + (bolsa ? "/b/" + bolsa : "");
 }
 
 var MARCA_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
   '<path d="M3.2 10.5c0-4.2 3.9-7 8.8-7s8.8 2.8 8.8 7c0 1.1-.9 1.7-2.2 1.7H5.4c-1.3 0-2.2-.6-2.2-1.7Z"/>' +
   '<path d="M9.6 12.2v5.4c0 1.6.9 2.6 2.4 2.6s2.4-1 2.4-2.6v-5.4"/></svg>';
 
-function etiquetaHTML(l, chica, svgQR){
+function etiquetaHTML(l, chica, svgQR, bolsa, deCuantas){
   var h = '<div class="et' + (chica ? " et--s" : "") + '">';
   h += '<div class="et__t">';
   h += '<div class="et__marca">' + MARCA_SVG + "<span>Hongos del Sur</span></div>";
@@ -2064,20 +2281,28 @@ function etiquetaHTML(l, chica, svgQR){
   if(sciLote(l)) h += '<div class="et__sci">' + esc(sciLote(l)) + "</div>";
   h += '<div class="et__sep"><div class="et__k">Lote</div>';
   h += '<div class="et__cod">' + esc(l.cod) + "</div>";
-  h += '<div class="et__f">Inoculación · ' + esc(l.finoc ? fechaAnio(l.finoc) : "—") + "</div></div>";
-  h += "</div>";
-  h += '<div class="et__qr">' + svgQR + "<span>Escanea</span></div>";
+  h += '<div class="et__f">Inoculación · ' + esc(l.finoc ? fechaAnio(l.finoc) : "—") + "</div>";
+  if(bolsa) h += '<div class="et__b">Bolsa ' + bolsa + " de " + deCuantas + "</div>";
+  h += "</div></div>";
+  h += '<div class="et__qr">' + svgQR + "<span>" + (bolsa ? "Bolsa " + bolsa : "Escanea") + "</span></div>";
   h += "</div>";
   return h;
 }
 
-function imprimirEtiquetas(l, chica, cant){
-  var svgQR = QR.svg(urlLote(l), "", 2), una = etiquetaHTML(l, chica, svgQR), h = '<div class="hojaGrid">';
-  for(var i=0; i<cant; i++) h += una;
+// Sin numerar, todas las etiquetas son iguales y el QR se calcula una sola vez.
+// Numeradas, cada bolsa lleva el suyo y abre directo su pesaje.
+function imprimirEtiquetas(l, chica, cant, numerar){
+  var h = '<div class="hojaGrid">', i;
+  if(numerar){
+    for(i=1; i<=cant; i++) h += etiquetaHTML(l, chica, QR.svg(urlLote(l, i), "", 2), i, cant);
+  } else {
+    var una = etiquetaHTML(l, chica, QR.svg(urlLote(l), "", 2));
+    for(i=0; i<cant; i++) h += una;
+  }
   h += "</div>";
   document.getElementById("hojaEtiq").innerHTML = h;
   // El navegador necesita un respiro para maquetar en milímetros antes de imprimir.
-  setTimeout(function(){ window.print(); }, 120);
+  setTimeout(function(){ window.print(); }, 150);
 }
 
 /* ============================================================
@@ -2186,6 +2411,12 @@ function hojaLote(id){
   h += '<div class="field"><label for="f_peso">Peso por bolsa (kg)</label>';
   h += '<input id="f_peso" type="text" inputmode="decimal" value="' + (l.peso ? kg(l.peso) : "") + '" placeholder="opcional"></div></div>';
 
+  h += '<div class="field"><label for="f_seg">Cómo registras la cosecha</label><select id="f_seg">';
+  h += '<option value="0"' + (!l.porBolsa ? " selected" : "") + ">Por lote · un peso para toda la tanda</option>";
+  h += '<option value="1"' + (l.porBolsa ? " selected" : "") + ">Bolsa por bolsa · para saber el promedio real</option>";
+  h += "</select>";
+  h += '<span class="hint">Bolsa por bolsa suma a la estadística de rendimiento por cepa. Se puede cambiar cuando quieras: lo ya anotado no se pierde.</span></div>';
+
   h += '<div class="field"><label for="f_est">Estado del cultivo</label><select id="f_est">';
   ESTADOS.forEach(function(e){
     h += '<option value="' + e.k + '"' + (e.k === l.est ? " selected" : "") + ">" + esc(e.n) + " · " + esc(e.d) + "</option>";
@@ -2222,6 +2453,7 @@ function guardarLote(id){
     finoc: finoc,
     bolsas: Math.max(0, Math.round(leerNum(document.getElementById("f_bolsas").value))),
     peso: Math.max(0, leerNum(document.getElementById("f_peso").value)),
+    porBolsa: document.getElementById("f_seg").value === "1",
     obs: document.getElementById("f_obs").value.trim()
   };
 
@@ -2259,7 +2491,8 @@ function hojaEvento(loteId, tipo, evId){
     cos:"Registrar cosecha", est:"Cambiar estado", cont:"Contaminación o descarte",
     nota:"Observación", foto:"Agregar fotografías"
   };
-  var h = '<h2 class="sheet__t">' + (ev ? "Editar · " : "") + titulos[tipo] + "</h2>";
+  var titulo = (ev && ev.b) ? "Bolsa " + ev.b + " · " + (Number(ev.o)||1) + "ª oleada" : titulos[tipo];
+  var h = '<h2 class="sheet__t">' + (ev ? "Editar · " : "") + titulo + "</h2>";
   h += '<p class="sheet__d">' + esc(l.cod) + " · " + esc(nomLote(l)) + "</p>";
 
   h += '<div class="field"><label for="e_f">Fecha</label>';
@@ -2268,7 +2501,7 @@ function hojaEvento(loteId, tipo, evId){
   if(tipo === "cos"){
     h += '<div class="f2"><div class="field"><label for="e_kg">Peso cosechado (kg)</label>';
     h += '<input id="e_kg" type="text" inputmode="decimal" value="' + (ev ? kg(ev.kg) : "") + '" placeholder="Ej: 2,4"></div>';
-    h += '<div class="field"><label>Oleada</label><input value="' + (ev ? "" : (cosechas(l).length + 1) + "ª") + '" disabled style="opacity:.6"></div></div>';
+    h += '<div class="field"><label>Oleada</label><input value="' + (ev ? "" : (numOleadas(l) + 1) + "ª") + '" disabled style="opacity:.6"></div></div>';
   }
   if(tipo === "est"){
     h += '<div class="field"><label for="e_a">Nuevo estado</label><select id="e_a">';
@@ -2400,19 +2633,184 @@ function borrarEvento(loteId, evId){
   avisar("Evento eliminado");
 }
 
+/* --- Cosecha bolsa por bolsa --- */
+
+// Pesaje de una oleada completa: una fila por bolsa, se guarda a medida que se escribe.
+function hojaBolsas(loteId, fecha, oleada){
+  var l = lotePorId(loteId);
+  if(!l) return;
+  if(!totalBolsas(l)){ avisar("Primero carga cuántas bolsas tiene el lote."); return; }
+  var ol = Number(oleada) || siguienteOleada(l);
+
+  var h = '<h2 class="sheet__t">Cosecha por bolsa</h2>';
+  h += '<p class="sheet__d">' + esc(l.cod) + " · " + esc(nomLote(l)) + ". Pesa y anota: se guarda solo. La bolsa que no cosechaste se deja vacía.</p>";
+  h += '<div class="f2"><div class="field"><label for="bb_f">Fecha</label>';
+  h += '<input id="bb_f" type="date" value="' + esc(fecha || hoyISO()) + '"></div>';
+  h += '<div class="field"><label for="bb_o">Oleada</label><select id="bb_o">';
+  for(var i=1; i<=Math.max(6, ol+1); i++) h += '<option value="' + i + '"' + (i === ol ? " selected" : "") + ">" + i + "ª oleada</option>";
+  h += "</select></div></div>";
+  h += '<div id="bbLista" data-lote="' + esc(l.id) + '"></div>';
+  h += '<div style="margin-top:14px"><button class="btn btn--primary" data-bfin="1">Listo</button></div>';
+  abrirHoja(h);
+  pintarFilasBolsas(l.id);
+}
+
+function pintarFilasBolsas(loteId){
+  var l = lotePorId(loteId), caja = document.getElementById("bbLista");
+  if(!l || !caja) return;
+  var ol = Number(document.getElementById("bb_o").value) || 1;
+  var tot = totalBolsas(l), h = "";
+  for(var i=1; i<=tot; i++){
+    var ev = cosechaDe(l, i, ol), fuera = bolsaDescartada(l, i);
+    h += '<div class="brow' + (ev ? " tiene" : "") + (fuera ? " fuera" : "") + '" data-brow="' + i + '">';
+    h += '<span class="brow__n">' + i + "</span>";
+    h += '<span class="brow__c"><input type="text" inputmode="decimal" data-bin="' + i + '" value="' + (ev ? kg(ev.kg) : "") + '"';
+    h += ' placeholder="' + (fuera ? "descartada" : "—") + '" aria-label="Kilos de la bolsa ' + i + '">';
+    h += '<span class="brow__u">kg</span></span></div>';
+  }
+  h += '<div class="btot"><span id="bbCuenta">—</span><span><b id="bbTot">0</b> kg</span></div>';
+  caja.innerHTML = h;
+  actualizarTotalOleada(loteId);
+}
+
+function actualizarTotalOleada(loteId){
+  var l = lotePorId(loteId);
+  if(!l || !document.getElementById("bb_o")) return;
+  var ol = Number(document.getElementById("bb_o").value) || 1, suma = 0, n = 0;
+  l.ev.forEach(function(e){
+    if(e.t === "cos" && e.b && (Number(e.o)||1) === ol){ suma += Number(e.kg) || 0; n++; }
+  });
+  var t = document.getElementById("bbTot"), c = document.getElementById("bbCuenta");
+  if(t) t.textContent = kg(suma);
+  if(c) c.textContent = n ? n + (n === 1 ? " bolsa · promedio " : " bolsas · promedio ") + Math.round((suma/n)*1000) + " g" : "sin pesar todavía";
+}
+
+// Escribir en una fila crea, corrige o borra el registro de esa bolsa.
+function anotarBolsa(loteId, n, texto){
+  var l = lotePorId(loteId);
+  if(!l) return;
+  var f = (document.getElementById("bb_f") || {}).value || hoyISO();
+  var ol = Number(document.getElementById("bb_o").value) || 1;
+  var ev = cosechaDe(l, n, ol), vacio = String(texto).trim() === "";
+
+  if(vacio){
+    if(ev) l.ev = l.ev.filter(function(x){ return x.id !== ev.id; });
+  } else {
+    var v = Math.max(0, leerNum(texto));
+    if(ev){ ev.kg = v; ev.f = f; }
+    else agregarEvento(l, {t:"cos", f:f, kg:v, b:n, o:ol, txt:""});
+    if(!CERRADOS[l.est] && l.est !== "cose") ponerEstado(l, "cose", f, "");
+  }
+  guardar();
+
+  var fila = document.querySelector('.brow[data-brow="' + n + '"]');
+  if(fila) fila.classList.toggle("tiene", !vacio);
+  actualizarTotalOleada(loteId);
+}
+
+// Una bolsa suelta: es lo que se abre al escanear el QR de esa bolsa.
+function hojaBolsa(loteId, n){
+  var l = lotePorId(loteId);
+  if(!l) return;
+  n = Number(n);
+  var regs = l.ev.filter(function(e){ return e.t === "cos" && Number(e.b) === n; })
+    .sort(function(a,b){ return (Number(a.o)||1) - (Number(b.o)||1); });
+  var suma = 0;
+  regs.forEach(function(e){ suma += Number(e.kg) || 0; });
+  var fuera = bolsaDescartada(l, n);
+  var usadas = {};
+  regs.forEach(function(e){ usadas[Number(e.o)||1] = true; });
+  var prop = 1;
+  while(usadas[prop]) prop++;
+
+  var h = '<h2 class="sheet__t">Bolsa ' + n + " de " + totalBolsas(l) + "</h2>";
+  h += '<p class="sheet__d">' + esc(l.cod) + " · " + esc(nomLote(l)) + (l.cepa ? " · cepa " + esc(l.cepa) : "") + "</p>";
+
+  if(regs.length){
+    h += '<div class="tiles" style="margin-top:0;grid-template-columns:repeat(2,1fr)">';
+    h += '<div class="tile"><div class="tile__k">Lleva cosechado</div><div class="tile__v">' + Math.round(suma*1000) + '</div><div class="tile__s">gramos en ' + regs.length + (regs.length === 1 ? " oleada" : " oleadas") + "</div></div>";
+    h += '<div class="tile"><div class="tile__k">Promedio del lote</div><div class="tile__v">' + (statsBolsas(l).prom ? Math.round(statsBolsas(l).prom*1000) : "—") + '</div><div class="tile__s">g por bolsa</div></div>';
+    h += "</div>";
+    h += '<div class="card" style="margin-top:12px"><div class="card__body" style="padding-top:12px">';
+    regs.forEach(function(e){
+      h += '<button class="ev" data-lev="' + esc(e.id) + '"><span class="ev__i">' + ICO_EV.cos + "</span>";
+      h += '<span class="ev__b"><span class="ev__t">' + (Number(e.o)||1) + "ª oleada · " + kg(e.kg) + " kg</span>";
+      h += '<span class="ev__d">' + esc(fechaAnio(e.f)) + "</span></span></button>";
+    });
+    h += "</div></div>";
+  }
+
+  if(fuera){
+    h += '<p class="note" style="color:var(--crit)">Esta bolsa está marcada como descartada.</p>';
+    h += '<div style="margin-top:6px"><button class="btn btn--ghost" data-bundesc="' + n + '">Quitar el descarte</button></div>';
+  } else {
+    h += '<h3 class="sheet__t" style="font-size:1rem;margin:18px 0 10px">Anotar cosecha</h3>';
+    h += '<div class="f2"><div class="field"><label for="b_kg">Peso (kg)</label>';
+    h += '<input id="b_kg" type="text" inputmode="decimal" placeholder="Ej: 0,42"></div>';
+    h += '<div class="field"><label for="b_o">Oleada</label><select id="b_o">';
+    for(var i=1; i<=Math.max(6, prop); i++) h += '<option value="' + i + '"' + (i === prop ? " selected" : "") + ">" + i + "ª oleada</option>";
+    h += "</select></div></div>";
+    h += '<div class="field"><label for="b_f">Fecha</label><input id="b_f" type="date" value="' + hoyISO() + '"></div>';
+    h += '<div style="margin-top:6px"><button class="btn btn--primary" data-bsave="' + n + '">Guardar</button></div>';
+    h += '<div style="margin-top:9px"><button class="btn btn--danger" data-bdesc="' + n + '">Descartar esta bolsa</button></div>';
+  }
+  abrirHoja(h);
+  setTimeout(function(){
+    var c = document.getElementById("b_kg");
+    if(c) c.focus();
+  }, 150);
+}
+
+function guardarBolsa(loteId, n){
+  var l = lotePorId(loteId);
+  if(!l) return;
+  var v = Math.max(0, leerNum(document.getElementById("b_kg").value));
+  if(!v){ avisar("¿Cuánto pesó esta bolsa?"); return; }
+  var ol = Number(document.getElementById("b_o").value) || 1;
+  var f = document.getElementById("b_f").value || hoyISO();
+  var ev = cosechaDe(l, n, ol);
+  if(ev){ ev.kg = v; ev.f = f; }
+  else agregarEvento(l, {t:"cos", f:f, kg:v, b:Number(n), o:ol, txt:""});
+  if(!CERRADOS[l.est] && l.est !== "cose") ponerEstado(l, "cose", f, "");
+  guardar(); cerrarHoja(); render();
+  var s = statsBolsas(l);
+  avisar("Bolsa " + n + ": " + kg(v) + " kg · promedio del lote " + Math.round(s.prom*1000) + " g");
+}
+
+function descartarBolsa(loteId, n, quitar){
+  var l = lotePorId(loteId);
+  if(!l) return;
+  if(quitar){
+    l.ev = l.ev.filter(function(e){ return !(e.t === "cont" && Number(e.b) === Number(n)); });
+    avisar("Bolsa " + n + " vuelve a contar");
+  } else {
+    agregarEvento(l, {t:"cont", f:hoyISO(), n:1, b:Number(n), txt:"Bolsa " + n + " descartada"});
+    avisar("Bolsa " + n + " descartada");
+  }
+  guardar(); cerrarHoja(); render();
+}
+
 /* --- Etiqueta con QR --- */
 
-var etiqChica = false;
+var etiqChica = false, etiqNumerar = null;
 
 function hojaEtiqueta(loteId, cant){
   var l = lotePorId(loteId);
   if(!l) return;
-  var url = urlLote(l), svgQR = QR.svg(url, "", 2);
-  if(cant == null) cant = Math.max(1, bolsasVivas(l) || Number(l.bolsas) || 1);
+  if(etiqNumerar == null) etiqNumerar = !!l.porBolsa;
+  if(cant == null) cant = Math.max(1, Number(l.bolsas) || bolsasVivas(l) || 1);
+  var url = urlLote(l, etiqNumerar ? 1 : 0);
+  var svgQR = QR.svg(url, "", 2);
 
   var h = '<h2 class="sheet__t">Etiqueta del lote</h2>';
-  h += '<p class="sheet__d">Se imprime en hoja A4 con guías de corte. Al escanear el QR desde el teléfono se abre la ficha de este lote.</p>';
-  h += '<div class="etprev" id="etPrev">' + etiquetaHTML(l, etiqChica, svgQR) + "</div>";
+  h += '<p class="sheet__d">Se imprime en hoja A4 con guías de corte. Al escanear el QR desde el teléfono se abre ' +
+       (etiqNumerar ? "el pesaje de esa bolsa" : "la ficha de este lote") + ".</p>";
+  h += '<div class="etprev" id="etPrev">' + etiquetaHTML(l, etiqChica, svgQR, etiqNumerar ? 1 : 0, cant) + "</div>";
+
+  h += '<div class="field"><label for="t_num">Tipo de etiqueta</label><select id="t_num">';
+  h += '<option value="0"' + (etiqNumerar ? "" : " selected") + ">Todas iguales · el QR abre el lote</option>";
+  h += '<option value="1"' + (etiqNumerar ? " selected" : "") + ">Numeradas 1, 2, 3… · el QR abre esa bolsa</option>";
+  h += "</select></div>";
 
   h += '<div class="f2"><div class="field"><label for="t_tam">Tamaño</label><select id="t_tam">';
   h += '<option value="0"' + (etiqChica ? "" : " selected") + ">Mediana · 64×46 mm (18 por hoja)</option>";
@@ -2420,7 +2818,9 @@ function hojaEtiqueta(loteId, cant){
   h += '<div class="field"><label for="t_cant">Cuántas etiquetas</label>';
   h += '<input id="t_cant" type="number" inputmode="numeric" step="1" min="1" max="500" value="' + cant + '">';
   h += "</div></div>";
-  h += '<p class="note" style="margin-top:0">Una por bolsa: vienen ' + bolsasVivas(l) + " precargadas.</p>";
+  h += '<p class="note" style="margin-top:0">' + (etiqNumerar
+    ? "Se numeran de 1 a " + cant + ", una por bolsa. Pega cada una en su bolsa y no las cambies de lugar: el número es la identidad de esa bolsa."
+    : "Una por bolsa: vienen " + (Number(l.bolsas) || bolsasVivas(l)) + " precargadas.") + "</p>";
 
   h += '<div style="margin-top:12px"><button class="btn btn--primary" data-timp="' + esc(l.id) + '">';
   h += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5h20v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></svg>Imprimir o guardar PDF</button></div>';
@@ -2547,17 +2947,18 @@ function csvInventario(){
 }
 
 function csvLotes(){
-  var f = [["Codigo","Hongo","Nombre cientifico","Cepa","Inoculacion","Dias","Estado","Bolsas","Descartadas","Peso por bolsa (kg)","Cosechado (kg)","Oleadas","Rendimiento (g/bolsa)","Sobre sustrato (%)","Estimado cosecha","Observaciones"]];
+  var f = [["Codigo","Hongo","Nombre cientifico","Cepa","Inoculacion","Dias","Estado","Bolsas","Descartadas","Peso por bolsa (kg)","Cosechado (kg)","Oleadas","Rendimiento (g/bolsa)","Sobre sustrato (%)","Bolsas pesadas","Promedio medido (g)","Minimo (g)","Maximo (g)","Estimado cosecha","Observaciones"]];
   var hoy = hoyISO();
   ordenarLotes("todos").forEach(function(l){
-    var rb = rendBolsa(l), rp = rendPct(l), e = estimado(l);
+    var rb = rendBolsa(l), rp = rendPct(l), e = estimado(l), s = statsBolsas(l);
     f.push([
       l.cod, nomLote(l), sciLote(l), l.cepa || "",
       l.finoc || "", l.finoc ? diasEntre(l.finoc, hoy) : "",
       estDe(l.est).n, Number(l.bolsas) || 0, descartadas(l), l.peso ? kg(l.peso) : "",
-      kg(kgLote(l)), cosechas(l).length,
+      kg(kgLote(l)), numOleadas(l),
       rb == null ? "" : Math.round(rb),
       rp == null ? "" : num(rp),
+      s.n || "", s.n ? Math.round(s.prom*1000) : "", s.n ? Math.round(s.min*1000) : "", s.n ? Math.round(s.max*1000) : "",
       e ? e.f : "", (l.obs || "").replace(/\s+/g," ")
     ]);
   });
@@ -2717,8 +3118,9 @@ function limpiarHash(){
 }
 
 // Un QR escaneado llega como  …/#/l/CODIGO  y abre esa ficha.
+// Si la etiqueta era de una bolsa, llega  …/#/l/CODIGO/b/7  y abre su pesaje.
 function aplicarHash(){
-  var m = /^#\/l\/(.+)$/.exec(location.hash || "");
+  var m = /^#\/l\/([^\/]+)(?:\/b\/(\d+))?\/?$/.exec(location.hash || "");
   if(!m){
     if(vista === "ficha") irA("lotes");
     return;
@@ -2733,6 +3135,7 @@ function aplicarHash(){
   }
   loteAbierto = l.id;
   irA("ficha");
+  if(m[2]) hojaBolsa(l.id, Number(m[2]));
 }
 
 function volverDeFicha(){
@@ -2838,8 +3241,15 @@ document.addEventListener("click", function(ev){
 /* --- Eventos de la parte de lotes --- */
 
 document.addEventListener("click", function(ev){
-  var t = ev.target.closest ? ev.target.closest("[data-flote],[data-lote],[data-led],[data-lsave],[data-lborrar],[data-lact],[data-lev],[data-esave],[data-eborrar],[data-ver],[data-timp],[data-tqr],#btnAtras,#lupaCerrar,#lupaBorrar") : null;
+  var t = ev.target.closest ? ev.target.closest("[data-flote],[data-lote],[data-led],[data-lsave],[data-lborrar],[data-lact],[data-lev],[data-esave],[data-eborrar],[data-ver],[data-timp],[data-tqr],[data-lbolsa],[data-lgrupo],[data-bfin],[data-bsave],[data-bdesc],[data-bundesc],#btnAtras,#lupaCerrar,#lupaBorrar") : null;
   if(!t) return;
+
+  if(t.dataset.lbolsa){ hojaBolsa(loteAbierto, t.dataset.lbolsa); return; }
+  if(t.dataset.lgrupo){ hojaBolsas(loteAbierto, t.dataset.lgrupo, t.dataset.lol); return; }
+  if(t.hasAttribute("data-bfin")){ cerrarHoja(); render(); return; }
+  if(t.dataset.bsave){ guardarBolsa(loteAbierto, t.dataset.bsave); return; }
+  if(t.dataset.bdesc){ descartarBolsa(loteAbierto, t.dataset.bdesc, false); return; }
+  if(t.dataset.bundesc){ descartarBolsa(loteAbierto, t.dataset.bundesc, true); return; }
 
   if(t.id === "btnAtras"){ volverDeFicha(); return; }
   if(t.id === "lupaCerrar"){ document.getElementById("lupa").classList.remove("open"); return; }
@@ -2869,7 +3279,8 @@ document.addEventListener("click", function(ev){
 
   if(t.dataset.timp){
     var cant = Math.max(1, Math.min(500, Math.round(parseFloat(document.getElementById("t_cant").value) || 1)));
-    imprimirEtiquetas(lotePorId(t.dataset.timp), etiqChica, cant);
+    if(etiqNumerar && cant > 120 && !confirm("Vas a generar " + cant + " etiquetas numeradas, cada una con su propio código QR.\n\nPuede demorar unos segundos. ¿Seguir?")) return;
+    imprimirEtiquetas(lotePorId(t.dataset.timp), etiqChica, cant, etiqNumerar);
     return;
   }
   if(t.dataset.tqr){
@@ -2895,6 +3306,7 @@ document.addEventListener("click", function(ev){
     return;
   }
   if(a === "etiq"){ hojaEtiqueta(loteAbierto); return; }
+  if(a === "bolsas"){ hojaBolsas(loteAbierto); return; }
   if(a){ hojaEvento(loteAbierto, a, null); return; }
 });
 
@@ -2924,10 +3336,17 @@ document.addEventListener("change", function(ev){
     }
     return;
   }
-  if(el.id === "t_tam"){
-    etiqChica = el.value === "1";
-    var l = lotePorId(loteAbierto), prev = document.getElementById("etPrev");
-    if(l && prev) prev.innerHTML = etiquetaHTML(l, etiqChica, QR.svg(urlLote(l), "", 2));
+  if(el.id === "t_tam" || el.id === "t_num"){
+    if(el.id === "t_tam") etiqChica = el.value === "1";
+    else etiqNumerar = el.value === "1";
+    var cantAct = Math.max(1, Math.round(parseFloat(document.getElementById("t_cant").value) || 1));
+    hojaEtiqueta(loteAbierto, cantAct);
+    return;
+  }
+  // Pesaje por bolsa: cambiar de oleada o de fecha vuelve a pintar las filas.
+  if(el.id === "bb_o" || el.id === "bb_f"){
+    var caja = document.getElementById("bbLista");
+    if(caja) pintarFilasBolsas(caja.dataset.lote);
     return;
   }
 });
@@ -2935,6 +3354,11 @@ document.addEventListener("change", function(ev){
 document.addEventListener("input", function(ev){
   var el = ev.target;
   if(el.id === "f_cod"){ el.dataset.auto = "0"; return; }
+  if(el.dataset && el.dataset.bin){
+    var caja = document.getElementById("bbLista");
+    if(caja) anotarBolsa(caja.dataset.lote, Number(el.dataset.bin), el.value);
+    return;
+  }
   if(el.dataset && el.dataset.in){
     var v = parseFloat(el.value);
     if(el.value === "" || isNaN(v)) return;
