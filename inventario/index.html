@@ -353,6 +353,7 @@ button.buy:hover{background:var(--sand)}
 .tab svg{width:20px;height:20px}
 .tab span{font-size:.66rem;font-weight:500;letter-spacing:.01em}
 .tab.on{color:var(--accent)}
+.tab[hidden]{display:none}
 .tab .badge{
   position:absolute;top:5px;left:50%;margin-left:6px;min-width:16px;height:16px;
   border-radius:99px;background:var(--crit);color:#fff;font-family:var(--f-mono);
@@ -792,6 +793,8 @@ function guardar(){
   guardarPend = setTimeout(function(){
     try{ localStorage.setItem(CLAVE, JSON.stringify(DB)); }
     catch(e){ avisar("No se pudo guardar. Revisa el espacio del navegador."); }
+    // Guardar en el teléfono es lo urgente; subir a la nube puede esperar.
+    if(typeof SYNC !== "undefined" && SYNC) SYNC.pronto();
   }, 220);
 }
 
@@ -1221,6 +1224,14 @@ function pintarResumen(){
   });
 
   var h = bloqueProduccion();
+
+  // Un trabajador no ve inventario ni costos. El servidor tampoco se los daría,
+  // pero mostrar una sección que no le corresponde solo confunde.
+  if(NUBE.rol() === "produccion"){
+    document.getElementById("tab-resumen").innerHTML = h;
+    return;
+  }
+
   h += '<div class="igroup__t">Inventario</div>';
   h += '<div class="tiles" style="margin-top:0">';
   h += '<div class="tile"><div class="tile__k">Valor del inventario</div><div class="tile__v">' + clp(val.total) + "</div>";
@@ -2460,6 +2471,16 @@ var NUBE = (function(){
     if(cb) cb();
   }
 
+  // Llamada a la base con la sesión ya renovada si hacía falta.
+  function rest(ruta, opciones, cb){
+    conToken(function(err, tok){
+      if(err){ cb({estado:401, msg:err}, null); return; }
+      var o = opciones || {};
+      o.token = tok;
+      llamar("/rest/v1" + ruta, o, cb);
+    });
+  }
+
   // El perfil trae el rol, que es lo que decide qué se puede ver y hacer.
   function traerPerfil(cb){
     conToken(function(err, tok){
@@ -2502,12 +2523,281 @@ var NUBE = (function(){
     salir: salir,
     traerPerfil: traerPerfil,
     conToken: conToken,
+    rest: rest,
     llamar: llamar
   };
 })();
 
 /* ============================================================
-   14. Hojas modales
+   14. Sincronización de lotes
+   ============================================================
+
+   Lo local manda: se guarda primero en el teléfono y la nube es la copia que se
+   pone al día cuando hay señal. En el galpón sin cobertura se anota igual.
+
+   Cómo sabe qué cambió: guarda una huella (un número corto) de cada lote y cada
+   evento tal como quedaron la última vez que se sincronizaron. Lo que hoy tiene
+   otra huella, cambió; lo que está en las huellas pero ya no en la app, se borró.
+   Así no hubo que tocar ni una de las funciones que ya guardaban datos.
+
+   Primero sube y después baja, a propósito: al bajar, lo recién subido vuelve
+   igual y no hay ida y vuelta infinita. Si dos personas editaron lo mismo sin
+   señal, queda lo del último que subió.
+   ============================================================ */
+
+var SYNC = (function(){
+  var CLAVE = "hds_sync_v1";
+  var est = {ultima:"1970-01-01T00:00:00Z", huellas:{}};
+  var enCurso = false, pendT = null, ultimoError = "";
+
+  function cargarEstado(){
+    try{
+      var c = localStorage.getItem(CLAVE);
+      if(c){
+        var d = JSON.parse(c);
+        if(d && d.huellas){ est = d; }
+      }
+    }catch(e){}
+    return est;
+  }
+  function guardarEstado(){
+    try{ localStorage.setItem(CLAVE, JSON.stringify(est)); }catch(e){}
+  }
+  function olvidar(){
+    est = {ultima:"1970-01-01T00:00:00Z", huellas:{}};
+    guardarEstado();
+  }
+
+  // Huella corta y estable de un objeto: alcanza para saber si cambió.
+  function huella(o){
+    var s = JSON.stringify(o), h = 5381;
+    for(var i=0; i<s.length; i++) h = ((h*33) ^ s.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  }
+
+  /* --- Traducción entre lo que guarda la app y lo que espera la base --- */
+
+  function aFilaLote(l){
+    return {
+      id:l.id, cod:l.cod, esp:l.esp || "OTR", otro:l.otro || "", cepa:l.cepa || "",
+      finoc:l.finoc || null, bolsas:Number(l.bolsas) || 0, peso:Number(l.peso) || 0,
+      est:l.est || "inoc", obs:l.obs || "", por_bolsa:!!l.porBolsa, borrado:false
+    };
+  }
+  function deFilaLote(r, dest){
+    var l = dest || {ev:[]};
+    l.id = r.id; l.cod = r.cod; l.esp = r.esp; l.otro = r.otro || "";
+    l.cepa = r.cepa || ""; l.finoc = r.finoc || ""; l.bolsas = Number(r.bolsas) || 0;
+    l.peso = Number(r.peso) || 0; l.est = r.est; l.obs = r.obs || "";
+    l.porBolsa = !!r.por_bolsa;
+    if(!Array.isArray(l.ev)) l.ev = [];
+    return l;
+  }
+  function aFilaEv(loteId, e){
+    return {
+      id:e.id, lote_id:loteId, t:e.t, f:e.f, txt:e.txt || "",
+      kg:Number(e.kg) || 0, n:Number(e.n) || 0, a:e.a || "",
+      b:e.b == null ? null : Number(e.b), o:e.o == null ? null : Number(e.o),
+      fotos:e.fotos || [], borrado:false
+    };
+  }
+  function deFilaEv(r, dest){
+    var e = dest || {};
+    e.id = r.id; e.t = r.t; e.f = r.f; e.txt = r.txt || "";
+    e.kg = Number(r.kg) || 0; e.n = Number(r.n) || 0; e.a = r.a || "";
+    if(r.b != null) e.b = Number(r.b); else delete e.b;
+    if(r.o != null) e.o = Number(r.o); else delete e.o;
+    e.fotos = r.fotos || [];
+    return e;
+  }
+
+  /* --- Qué cambió desde la última vez --- */
+
+  function cambios(){
+    var subirL = [], subirE = [], bajaL = [], bajaE = [], vistos = {};
+
+    DB.lotes.forEach(function(l){
+      var fl = aFilaLote(l), kl = "L" + l.id;
+      vistos[kl] = 1;
+      if(est.huellas[kl] !== huella(fl)) subirL.push(fl);
+      l.ev.forEach(function(e){
+        var fe = aFilaEv(l.id, e), ke = "E" + e.id;
+        vistos[ke] = 1;
+        if(est.huellas[ke] !== huella(fe)) subirE.push(fe);
+      });
+    });
+
+    // Lo que estaba sincronizado y ya no está en la app: se borró en este teléfono.
+    for(var k in est.huellas){
+      if(vistos[k]) continue;
+      if(k.charAt(0) === "L") bajaL.push({id:k.slice(1), borrado:true});
+      else bajaE.push({id:k.slice(1), borrado:true});
+    }
+    return {lotes:subirL, evs:subirE, bajaLotes:bajaL, bajaEvs:bajaE};
+  }
+
+  function hayPendientes(){
+    var c = cambios();
+    return c.lotes.length + c.evs.length + c.bajaLotes.length + c.bajaEvs.length;
+  }
+
+  /* --- Subida --- */
+
+  // PostgREST exige que todos los objetos de un lote traigan las mismas claves,
+  // por eso las altas y las bajas viajan en llamadas distintas.
+  function subirTanda(tabla, filas, cb){
+    if(!filas.length){ cb(null); return; }
+    NUBE.rest("/" + tabla, {
+      metodo:"POST",
+      cabeceras:{Prefer:"resolution=merge-duplicates,return=minimal"},
+      cuerpo:filas
+    }, function(err){ cb(err ? err.msg : null); });
+  }
+
+  function subir(c, cb){
+    subirTanda("lotes", c.lotes, function(e1){
+      if(e1){ cb(e1); return; }
+      subirTanda("lotes", c.bajaLotes, function(e2){
+        if(e2){ cb(e2); return; }
+        subirTanda("eventos", c.evs, function(e3){
+          if(e3){ cb(e3); return; }
+          subirTanda("eventos", c.bajaEvs, cb);
+        });
+      });
+    });
+  }
+
+  /* --- Bajada --- */
+
+  function bajar(cb){
+    var desde = encodeURIComponent(est.ultima);
+    NUBE.rest("/lotes?select=*&actualizado=gt." + desde + "&order=actualizado.asc", {}, function(e1, lotes){
+      if(e1){ cb(e1.msg); return; }
+      NUBE.rest("/eventos?select=*&actualizado=gt." + desde + "&order=actualizado.asc", {}, function(e2, evs){
+        if(e2){ cb(e2.msg); return; }
+        cb(null, aplicar(lotes || [], evs || []));
+      });
+    });
+  }
+
+  function aplicar(lotes, evs){
+    var n = 0, tope = est.ultima, huerfano = null;
+
+    lotes.forEach(function(r){
+      if(r.actualizado > tope) tope = r.actualizado;
+      var local = lotePorId(r.id);
+      if(r.borrado){
+        if(local){
+          DB.lotes = DB.lotes.filter(function(x){ return x.id !== r.id; });
+          n++;
+        }
+        delete est.huellas["L" + r.id];
+        return;
+      }
+      if(local){ deFilaLote(r, local); }
+      else { DB.lotes.push(deFilaLote(r)); }
+      est.huellas["L" + r.id] = huella(aFilaLote(lotePorId(r.id)));
+      n++;
+    });
+
+    evs.forEach(function(r){
+      if(r.actualizado > tope) tope = r.actualizado;
+      var l = lotePorId(r.lote_id);
+      // Un evento sin su lote se deja para después: se anota desde cuándo hay
+      // que volver a pedir, para que no se pierda al avanzar la marca de tiempo.
+      if(!l){
+        if(huerfano == null || r.actualizado < huerfano) huerfano = r.actualizado;
+        return;
+      }
+      var idx = -1;
+      for(var i=0; i<l.ev.length; i++) if(l.ev[i].id === r.id){ idx = i; break; }
+      if(r.borrado){
+        if(idx >= 0){ l.ev.splice(idx, 1); n++; }
+        delete est.huellas["E" + r.id];
+        return;
+      }
+      if(idx >= 0) deFilaEv(r, l.ev[idx]);
+      else l.ev.push(deFilaEv(r));
+      est.huellas["E" + r.id] = huella(aFilaEv(l.id, deFilaEv(r)));
+      n++;
+    });
+
+    // Si quedó algo huérfano, la marca no se pasa de ahí: la próxima
+    // sincronización lo vuelve a traer, ya con su lote presente.
+    est.ultima = (huerfano != null && tope >= huerfano) ? est.ultima : tope;
+    return n;
+  }
+
+  // Después de subir sin problemas, lo local pasa a ser lo conocido.
+  function sellar(){
+    var nuevas = {};
+    DB.lotes.forEach(function(l){
+      nuevas["L" + l.id] = huella(aFilaLote(l));
+      l.ev.forEach(function(e){ nuevas["E" + e.id] = huella(aFilaEv(l.id, e)); });
+    });
+    est.huellas = nuevas;
+  }
+
+  /* --- La operación completa --- */
+
+  function sincronizar(cb){
+    cb = cb || function(){};
+    if(enCurso){ cb("ya en curso"); return; }
+    if(!NUBE.sesion()){ cb("Sin sesión"); return; }
+    var rol = NUBE.rol();
+    if(rol !== "dueno" && rol !== "produccion"){ cb("Tu cuenta todavía no tiene acceso"); return; }
+
+    enCurso = true;
+    var c = cambios(), subidos = c.lotes.length + c.evs.length + c.bajaLotes.length + c.bajaEvs.length;
+
+    subir(c, function(errSubida){
+      if(errSubida){
+        enCurso = false; ultimoError = errSubida;
+        guardarEstado();
+        cb(errSubida);
+        return;
+      }
+      bajar(function(errBajada, bajados){
+        enCurso = false;
+        if(errBajada){
+          ultimoError = errBajada;
+          // La subida sí funcionó: se sella igual para no repetirla.
+          sellar(); guardarEstado(); guardar();
+          cb(errBajada);
+          return;
+        }
+        ultimoError = "";
+        sellar();
+        est.cuando = new Date().toISOString();
+        guardarEstado();
+        guardar();
+        render();
+        cb(null, {subidos:subidos, bajados:bajados});
+      });
+    });
+  }
+
+  // Sincronización sola: se junta el trabajo unos segundos y se manda una vez.
+  function pronto(){
+    if(!NUBE.sesion()) return;
+    clearTimeout(pendT);
+    pendT = setTimeout(function(){ sincronizar(function(){}); }, 6000);
+  }
+
+  return {
+    cargarEstado: cargarEstado,
+    sincronizar: sincronizar,
+    pronto: pronto,
+    hayPendientes: hayPendientes,
+    olvidar: olvidar,
+    cuando: function(){ return est.cuando; },
+    error: function(){ return ultimoError; },
+    ocupado: function(){ return enCurso; }
+  };
+})();
+
+/* ============================================================
+   15. Hojas modales
    ============================================================ */
 
 function abrirHoja(html){
@@ -3086,23 +3376,104 @@ function hojaNube(){
     h += '<p class="note" style="margin-top:0">Si el dueño eres tú y es la primera cuenta, hay que darse el rol una vez desde el panel de Supabase. Está explicado en <em>nube/LEEME.md</em>.</p>';
   }
 
-  h += '<div style="margin-top:6px"><button class="btn btn--ghost" data-nact="refrescar">Comprobar de nuevo</button></div>';
+  if(rol === "dueno" || rol === "produccion"){
+    var pend = SYNC.hayPendientes(), cuando = SYNC.cuando(), err = SYNC.error();
+    h += '<div class="card" style="margin-top:0"><div class="card__head"><h2 class="card__t">Sincronización</h2>';
+    h += '<span class="card__n">' + (pend ? pend + " por subir" : "al día") + "</span></div>";
+    h += '<div class="card__body" style="padding-top:0"><p class="note" style="padding:0;margin-top:0">';
+    h += cuando ? "Última vez: " + esc(new Date(cuando).toLocaleString("es-CL")) : "Todavía no se ha sincronizado en este teléfono.";
+    if(err) h += '<br><span style="color:var(--crit)">Último intento: ' + esc(err) + "</span>";
+    h += "</p>";
+    h += '<button class="btn btn--primary" data-nact="sincronizar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-7.6-4.2M3 12a9 9 0 0 1 9-9 9 9 0 0 1 7.6 4.2"/><path d="M21 3v5h-5M3 21v-5h5"/></svg>Sincronizar ahora</button>';
+    h += "</div></div>";
+    h += '<p class="note" style="margin-top:0">Las fotos todavía no viajan a la nube: por ahora quedan en el teléfono donde se tomaron.</p>';
+  }
+
+  if(rol === "dueno"){
+    h += '<div style="margin-top:6px"><button class="btn btn--ghost" data-nact="equipo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 20v-2a4 4 0 0 0-3-3.9"/></svg>Equipo</button></div>';
+  }
+
+  h += '<div style="margin-top:9px"><button class="btn btn--ghost" data-nact="refrescar">Comprobar de nuevo</button></div>';
   h += '<div style="margin-top:9px"><button class="btn btn--danger" data-nact="salir">Cerrar sesión</button></div>';
   h += '<p class="note">Cerrar sesión no borra nada de este teléfono: los datos locales quedan igual.</p>';
   abrirHoja(h);
+}
+
+/* --- Equipo: aprobar gente y cambiar roles (solo el dueño) --- */
+
+function hojaEquipo(){
+  abrirHoja('<h2 class="sheet__t">Equipo</h2><p class="sheet__d">Buscando…</p>');
+  NUBE.rest("/perfiles?select=id,nombre,rol,creado&order=creado.asc", {}, function(err, gente){
+    if(err){ abrirHoja('<h2 class="sheet__t">Equipo</h2><p class="sheet__d" style="color:var(--crit)">' + esc(err.msg) + "</p>"); return; }
+    var yo = NUBE.sesion();
+
+    var h = '<h2 class="sheet__t">Equipo</h2>';
+    h += '<p class="sheet__d">Quien se registra queda en espera hasta que le des acceso. Producción ve y anota lotes, pero no el inventario ni los costos.</p>';
+
+    (gente || []).forEach(function(p){
+      var soyYo = yo && p.id === yo.uid;
+      var r = ROLES_TXT[p.rol] || {n:p.rol};
+      h += '<div class="buy" style="border-top:1px solid var(--line-soft)">';
+      h += '<div class="buy__t"><div class="buy__n">' + esc(p.nombre || "sin nombre") + (soyYo ? " · tú" : "") + "</div>";
+      h += '<div class="buy__m">' + esc(r.n) + "</div></div></div>";
+      if(!soyYo){
+        h += '<div class="btnrow" style="margin:0 0 12px;padding:0 14px">';
+        if(p.rol !== "produccion") h += '<button class="btn btn--ghost" data-prol="produccion" data-pid="' + esc(p.id) + '" style="font-size:.8rem;padding:9px">Dar acceso</button>';
+        if(p.rol !== "bloqueado")  h += '<button class="btn btn--danger" data-prol="bloqueado" data-pid="' + esc(p.id) + '" style="font-size:.8rem;padding:9px">Bloquear</button>';
+        if(p.rol === "bloqueado")  h += '<button class="btn btn--ghost" data-prol="pendiente" data-pid="' + esc(p.id) + '" style="font-size:.8rem;padding:9px">Dejar en espera</button>';
+        h += "</div>";
+      }
+    });
+
+    if(!gente || !gente.length) h += '<div class="empty">Todavía no se ha registrado nadie más.</div>';
+    h += '<p class="note">Para que alguien entre: que abra la app, cree su cuenta con su correo y confirme el enlace. Después aparece acá.</p>';
+    abrirHoja(h);
+  });
+}
+
+function cambiarRol(id, rol){
+  NUBE.rest("/perfiles?id=eq." + encodeURIComponent(id), {
+    metodo:"PATCH",
+    cabeceras:{Prefer:"return=minimal"},
+    cuerpo:{rol:rol}
+  }, function(err){
+    if(err){ avisar(err.msg); return; }
+    avisar(rol === "bloqueado" ? "Acceso bloqueado" : rol === "produccion" ? "Ahora puede registrar producción" : "Queda en espera");
+    hojaEquipo();
+  });
 }
 
 function tocarNube(accion){
   if(accion === "modo") return;
 
   if(accion === "salir"){
-    NUBE.salir(function(){ hojaNube(); avisar("Sesión cerrada"); });
+    NUBE.salir(function(){
+      // Se olvida lo sincronizado: si después entra otra persona en este
+      // teléfono, se vuelve a comparar todo desde cero.
+      SYNC.olvidar();
+      aplicarRol();
+      hojaNube();
+      avisar("Sesión cerrada");
+    });
     return;
   }
   if(accion === "refrescar"){
     avisar("Comprobando…");
     NUBE.traerPerfil(function(err){
       if(err){ avisar(err); return; }
+      aplicarRol();
+      hojaNube();
+    });
+    return;
+  }
+  if(accion === "equipo"){ hojaEquipo(); return; }
+  if(accion === "sincronizar"){
+    if(SYNC.ocupado()){ avisar("Ya está sincronizando…"); return; }
+    avisar("Sincronizando…");
+    SYNC.sincronizar(function(err, r){
+      if(err){ avisar(err); hojaNube(); return; }
+      avisar(!r.subidos && !r.bajados ? "Todo estaba al día"
+           : "Listo · " + r.subidos + " subidos, " + r.bajados + " recibidos");
       hojaNube();
     });
     return;
@@ -3124,7 +3495,7 @@ function tocarNube(accion){
         avisar("Revisa tu correo y confirma la cuenta para poder entrar");
         return;
       }
-      NUBE.traerPerfil(function(){ hojaNube(); avisar("Cuenta creada"); });
+      NUBE.traerPerfil(function(){ aplicarRol(); hojaNube(); avisar("Cuenta creada"); });
     });
     return;
   }
@@ -3132,7 +3503,14 @@ function tocarNube(accion){
   avisar("Entrando…");
   NUBE.entrar(correo, clave, function(err){
     if(err){ avisar(err); return; }
-    NUBE.traerPerfil(function(){ hojaNube(); avisar("Sesión iniciada"); });
+    NUBE.traerPerfil(function(){
+      aplicarRol();
+      hojaNube();
+      avisar("Sesión iniciada");
+      SYNC.sincronizar(function(e2, r){
+        if(!e2 && r && (r.subidos || r.bajados)) avisar("Sincronizado · " + r.subidos + " subidos, " + r.bajados + " recibidos");
+      });
+    });
   });
 }
 
@@ -3190,7 +3568,7 @@ function hojaAyuda(){
 }
 
 /* ============================================================
-   15. Exportar / importar
+   16. Exportar / importar
    ============================================================ */
 
 // Dos caminos: en claude.ai se usa el diálogo del visor; abierto como archivo
@@ -3341,7 +3719,7 @@ function restaurar(){
 }
 
 /* ============================================================
-   16. Acciones
+   17. Acciones
    ============================================================ */
 
 // Actualiza en sitio, sin re-pintar la lista: así no salta el scroll ni se pierde
@@ -3382,7 +3760,7 @@ function cerrarSemana(){
 }
 
 /* ============================================================
-   17. Eventos
+   18. Eventos
    ============================================================ */
 
 var VISTAS = ["conteo","lotes","ficha","resumen","insumos"];
@@ -3418,6 +3796,18 @@ function irA(t){
   if(t !== "ficha" && location.hash) limpiarHash();
   window.scrollTo(0,0);
   render();
+}
+
+// Con rol de producción, las pestañas de inventario no se muestran.
+function aplicarRol(){
+  var soloProd = NUBE.rol() === "produccion";
+  ["conteo","insumos"].forEach(function(k){
+    var b = document.querySelector('.tab[data-tab="' + k + '"]');
+    if(b) b.hidden = soloProd;
+  });
+  document.getElementById("progWrap").hidden = soloProd || vista !== "conteo";
+  if(soloProd && (vista === "conteo" || vista === "insumos")) irA("lotes");
+  else render();
 }
 
 function limpiarHash(){
@@ -3577,7 +3967,7 @@ document.addEventListener("click", function(ev){
 /* --- Eventos de la parte de lotes --- */
 
 document.addEventListener("click", function(ev){
-  var t = ev.target.closest ? ev.target.closest("[data-flote],[data-lote],[data-led],[data-lsave],[data-lborrar],[data-lact],[data-lev],[data-esave],[data-eborrar],[data-ver],[data-timp],[data-tqr],[data-lbolsa],[data-lgrupo],[data-bfin],[data-bsave],[data-bdesc],[data-bundesc],[data-nact],#btnAtras,#lupaCerrar,#lupaBorrar") : null;
+  var t = ev.target.closest ? ev.target.closest("[data-flote],[data-lote],[data-led],[data-lsave],[data-lborrar],[data-lact],[data-lev],[data-esave],[data-eborrar],[data-ver],[data-timp],[data-tqr],[data-lbolsa],[data-lgrupo],[data-bfin],[data-bsave],[data-bdesc],[data-bundesc],[data-nact],[data-prol],#btnAtras,#lupaCerrar,#lupaBorrar") : null;
   if(!t) return;
 
   if(t.dataset.nact){
@@ -3585,6 +3975,7 @@ document.addEventListener("click", function(ev){
     tocarNube(t.dataset.nact);
     return;
   }
+  if(t.dataset.prol){ cambiarRol(t.dataset.pid, t.dataset.prol); return; }
   if(t.dataset.lbolsa){ hojaBolsa(loteAbierto, t.dataset.lbolsa); return; }
   if(t.dataset.lgrupo){ hojaBolsas(loteAbierto, t.dataset.lgrupo, t.dataset.lol); return; }
   if(t.hasAttribute("data-bfin")){ cerrarHoja(); render(); return; }
@@ -3742,7 +4133,7 @@ document.addEventListener("keydown", function(ev){
 window.addEventListener("hashchange", aplicarHash);
 
 /* ============================================================
-   18. Arranque
+   19. Arranque
    ============================================================ */
 
 try{
@@ -3755,7 +4146,16 @@ borrador();
 guardar();
 
 // Si había sesión, se recupera el rol por detrás: la app no espera al servidor.
-if(NUBE.cargar()) NUBE.traerPerfil(function(){});
+SYNC.cargarEstado();
+if(NUBE.cargar()){
+  NUBE.traerPerfil(function(err){
+    if(err) return;
+    aplicarRol();
+    SYNC.sincronizar(function(){});
+  });
+}
+// Al recuperar la señal, lo que quedó pendiente sube solo.
+window.addEventListener("online", function(){ SYNC.pronto(); });
 
 // El hash se lee antes de pintar nada, porque cambiar de pantalla lo borra.
 // Puede traer la sesión del enlace del correo, o el lote de un QR escaneado.
