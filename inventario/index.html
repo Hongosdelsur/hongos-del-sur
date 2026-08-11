@@ -9,6 +9,11 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Inventario">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
 <style>html{-webkit-tap-highlight-color:transparent}body{margin:0}</style>
 </head>
 <body><title>Inventario — Hongos del Sur</title>
@@ -2469,7 +2474,9 @@ function hojaAyuda(){
   h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">Stock vivo.</strong> Placas madre, frascos de cultivo líquido, bolsas en incubación, hongo en cámara. Se cuentan, pero nunca aparecen en la lista de compra.</p>";
   h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">Lotes.</strong> Cada tanda de bolsas es un lote con su código, su estado y su historial. Al crearlo se genera el código QR; imprime la etiqueta desde la ficha y pégala en cada bolsa.</p>";
   h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">Escanear para cosechar.</strong> Apunta la cámara del teléfono al QR de la bolsa: se abre la ficha de ese lote y el primer botón es «Registrar cosecha». Para que funcione, la app tiene que estar abierta desde una dirección web (menú ⋮ → Dirección para los códigos QR).</p>";
-  h += "<p><strong style=\"color:var(--ink)\">Rendimiento.</strong> Los kilos cosechados divididos por las bolsas sanas del lote, en gramos por bolsa. Si además cargas el peso por bolsa, la ficha calcula el rendimiento sobre el sustrato en porcentaje.</p>";
+  h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">Rendimiento.</strong> Los kilos cosechados divididos por las bolsas sanas del lote, en gramos por bolsa. Si además cargas el peso por bolsa, la ficha calcula el rendimiento sobre el sustrato en porcentaje.</p>";
+  h += "<p style=\"margin-bottom:12px\"><strong style=\"color:var(--ink)\">Instalarla en el iPhone.</strong> Abre la app en Safari, toca Compartir (el cuadrado con la flecha) y elige <em>Agregar a inicio</em>. Queda con su ícono, a pantalla completa y funciona sin señal.</p>";
+  h += "<p><strong style=\"color:var(--ink)\">Ojo mientras no haya nube.</strong> La app instalada y la de Safari guardan cada una sus propios datos, y al escanear un QR el iPhone siempre abre Safari. Hasta que los datos estén en la nube, conviene trabajar en un solo lugar.</p>";
   h += "</div>";
   abrirHoja(h);
 }
@@ -2721,7 +2728,7 @@ function aplicarHash(){
   if(!l){
     limpiarHash();
     irA("lotes");
-    avisar("No hay ningún lote « " + cod + " » en este dispositivo");
+    avisar("No hay ningún lote « " + cod + " » guardado en esta copia de la app");
     return;
   }
   loteAbierto = l.id;
@@ -2989,5 +2996,12 @@ else irA("conteo");
 })();
 </script>
 
+<script>
+if("serviceWorker" in navigator && location.protocol.indexOf("http") === 0){
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
+}
+</script>
 </body>
 </html>
