@@ -2361,13 +2361,19 @@ var NUBE = (function(){
     [/signups? not allowed/i,             "El registro está desactivado en el servidor"],
     [/rate limit|only request this after/i,"Demasiados intentos seguidos. Espera un momento y vuelve a probar."],
     [/permission denied/i,                "Tu cuenta todavía no tiene permiso para eso"],
-    [/jwt|token/i,                        "La sesión caducó: vuelve a entrar"],
+    [/email link is invalid or has expired/i, "El enlace del correo no sirve o ya venció: pide uno nuevo"],
+    [/jwt|invalid token|token is malformed|bad_jwt/i, "La sesión caducó: vuelve a entrar"],
     [/failed to fetch|networkerror/i,     "Sin conexión"]
   ];
+  // El texto traducido reemplaza al mensaje entero, no solo al trozo que calzó:
+  // si no, quedan frases a medias en dos idiomas. La excepción son los que
+  // rescatan un dato del original con $1.
   function traducir(msg){
     var s = String(msg || "");
     for(var i=0; i<TRADUCE.length; i++){
-      if(TRADUCE[i][0].test(s)) return s.replace(TRADUCE[i][0], TRADUCE[i][1]);
+      if(!TRADUCE[i][0].test(s)) continue;
+      var r = TRADUCE[i][1];
+      return r.indexOf("$") >= 0 ? s.replace(TRADUCE[i][0], r) : r;
     }
     return s;
   }
@@ -2417,8 +2423,16 @@ var NUBE = (function(){
     });
   }
 
+  // A dónde vuelve el enlace de confirmación del correo. Sin esto, Supabase usa
+  // su Site URL por defecto (localhost) y el enlace no lleva a ninguna parte.
+  function destino(){
+    if(location.protocol !== "http:" && location.protocol !== "https:") return "";
+    return location.origin + location.pathname;
+  }
+
   function registrar(correo, clave, nombre, cb){
-    llamar("/auth/v1/signup", {
+    var vuelta = destino();
+    llamar("/auth/v1/signup" + (vuelta ? "?redirect_to=" + encodeURIComponent(vuelta) : ""), {
       metodo:"POST",
       cuerpo:{email:correo, password:clave, data:{nombre:nombre}}
     }, function(err, d){
@@ -2458,8 +2472,28 @@ var NUBE = (function(){
     });
   }
 
+  // Al volver del enlace del correo, Supabase deja la sesión en el hash de la URL.
+  function desdeHash(p, cb){
+    guardarSes({
+      access_token: p.access_token,
+      refresh_token: p.refresh_token || "",
+      expira: Date.now() + ((Number(p.expires_in) || 3600) * 1000),
+      correo: "", uid: ""
+    });
+    llamar("/auth/v1/user", {token:p.access_token}, function(err, u){
+      // Si el token no sirve, no puede quedar una sesión a medias guardada.
+      if(err){ guardarSes(null); cb(err.msg); return; }
+      ses.correo = (u && u.email) || "";
+      ses.uid = (u && u.id) || "";
+      guardarSes(ses);
+      cb(null);
+    });
+  }
+
   return {
     cargar: cargar,
+    traducir: traducir,
+    desdeHash: desdeHash,
     sesion: function(){ return ses; },
     perfil: function(){ return perfil; },
     rol: function(){ return perfil ? perfil.rol : null; },
@@ -3391,6 +3425,33 @@ function limpiarHash(){
   else location.hash = "";
 }
 
+// El enlace de confirmación del correo vuelve con la sesión (o con un error)
+// escrita en el hash: se recoge, se limpia la barra de direcciones y se sigue.
+function tomarSesionDelHash(){
+  var h = location.hash || "";
+  if(h.indexOf("access_token=") < 0 && h.indexOf("error_description=") < 0 && h.indexOf("error=") < 0) return false;
+
+  var p = {};
+  h.replace(/^#\/?/, "").split("&").forEach(function(par){
+    var i = par.indexOf("=");
+    if(i > 0) p[decodeURIComponent(par.slice(0,i))] = decodeURIComponent(par.slice(i+1).replace(/\+/g," "));
+  });
+  limpiarHash();
+
+  if(!p.access_token){
+    avisar(NUBE.traducir(p.error_description || p.error || "El enlace del correo ya no sirve: pide uno nuevo"));
+    return true;
+  }
+  NUBE.desdeHash(p, function(err){
+    if(err){ avisar(err); return; }
+    NUBE.traerPerfil(function(){
+      avisar("Correo confirmado · sesión iniciada");
+      hojaNube();
+    });
+  });
+  return true;
+}
+
 // Un QR escaneado llega como  …/#/l/CODIGO  y abre esa ficha.
 // Si la etiqueta era de una bolsa, llega  …/#/l/CODIGO/b/7  y abre su pesaje.
 function aplicarHash(){
@@ -3696,8 +3757,10 @@ guardar();
 // Si había sesión, se recupera el rol por detrás: la app no espera al servidor.
 if(NUBE.cargar()) NUBE.traerPerfil(function(){});
 
-// Si la app se abrió desde un QR, se entra directo a la ficha de ese lote.
-if(/^#\/l\//.test(location.hash || "")) aplicarHash();
+// El hash se lee antes de pintar nada, porque cambiar de pantalla lo borra.
+// Puede traer la sesión del enlace del correo, o el lote de un QR escaneado.
+var vinoDelCorreo = tomarSesionDelHash();
+if(!vinoDelCorreo && /^#\/l\//.test(location.hash || "")) aplicarHash();
 else irA("conteo");
 
 })();
