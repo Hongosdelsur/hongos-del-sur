@@ -834,6 +834,42 @@ select.in{
 .kt tr.fuerte td{font-weight:700;border-top:1px solid var(--line);color:var(--ink)}
 .kt small{display:block;font-family:var(--f-body);font-size:.68rem;color:var(--ink-faint);letter-spacing:0}
 
+/* ============================================================
+   Puerta: lo primero que ve quien abre la dirección sin sesión
+   ============================================================ */
+.puerta{
+  position:fixed;inset:0;z-index:95;display:none;
+  background:var(--paper);
+  background-image:
+    linear-gradient(var(--line-soft) 1px,transparent 1px),
+    linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);
+  background-size:26px 26px;
+  overflow-y:auto;
+  font-family:var(--f-body);color:var(--ink);
+}
+.puerta.on{display:block}
+html[data-puerta]{overflow:hidden}
+.puerta__in{
+  max-width:400px;margin:0 auto;min-height:100%;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:32px 22px calc(32px + env(safe-area-inset-bottom,0px));
+}
+.puerta__sello{width:56px;height:56px;margin:0 auto 20px;display:grid;place-items:center;color:var(--accent)}
+.puerta__sello svg{width:38px;height:38px}
+.puerta__sello img{width:56px;height:56px;object-fit:contain;display:block}
+@media (prefers-color-scheme:dark){ .puerta__sello img{filter:invert(1)} }
+:root[data-theme="dark"] .puerta__sello img{filter:invert(1)}
+:root[data-theme="light"] .puerta__sello img{filter:none}
+.puerta__t{font-family:var(--f-display);font-size:1.5rem;font-weight:600;text-align:center;letter-spacing:-.01em;line-height:1.2}
+.puerta__s{font-family:var(--f-mono);font-size:.63rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);text-align:center;margin-top:7px}
+.puerta__d{font-size:.86rem;color:var(--ink-soft);text-align:center;margin:20px 0 22px;line-height:1.6}
+.puerta__err{
+  background:var(--crit-bg);color:var(--crit);border-radius:var(--r);
+  padding:10px 13px;font-size:.82rem;line-height:1.5;margin-bottom:13px;
+}
+.puerta__pie{font-size:.75rem;color:var(--ink-faint);text-align:center;margin-top:18px;line-height:1.6}
+.puerta__pie button{background:none;border:0;padding:0;color:var(--accent);font-size:.75rem;text-decoration:underline;text-underline-offset:3px}
+
 /* ---------- Varios ---------- */
 .empty{text-align:center;padding:34px 20px;color:var(--ink-faint);font-size:.86rem;line-height:1.6}
 .empty svg{width:32px;height:32px;margin-bottom:11px;opacity:.5}
@@ -958,6 +994,10 @@ h1,h2,h3,p,table{margin:0}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
+
+<!-- Puerta: tapa la app entera mientras no haya sesión. Vive fuera de .hds
+     para que ningún estilo de la app la mueva, y por encima de todo. -->
+<div class="puerta" id="puerta" role="dialog" aria-modal="true" aria-label="Iniciar sesión"></div>
 
 <!-- Hoja de etiquetas: invisible en pantalla, es lo único que se imprime. -->
 <div id="hojaEtiq" aria-hidden="true"></div>
@@ -3969,7 +4009,10 @@ function tocarNube(accion){
       // teléfono, se vuelve a comparar todo desde cero.
       SYNC.olvidar();
       aplicarRol();
-      hojaNube();
+      cerrarHoja();
+      // Servida por internet, cerrar sesión deja la puerta puesta otra vez.
+      if(EXIGE_SESION) abrirPuerta("entrar");
+      else hojaNube();
       avisar("Sesión cerrada");
     });
     return;
@@ -3978,6 +4021,8 @@ function tocarNube(accion){
     avisar("Comprobando…");
     NUBE.traerPerfil(function(err){
       if(err){ avisar(err); return; }
+      // Si mientras tanto le quitaron el acceso, se cierra la puerta encima.
+      if(!revisarRol(NUBE.rol())) return;
       aplicarRol();
       hojaNube();
     });
@@ -4310,7 +4355,7 @@ var COT = (function(){
     razon:"Hongos del Sur E.I.R.L.",
     giro:"Cultivo y comercialización de hongos comestibles",
     rut:"",
-    dir:"Ancud 1310, Osorno",
+    dir:"",
     region:"Región de Los Lagos, Chile",
     tel:"+56 9 3458 4090",
     mail:"hongosparaelsur@gmail.com",
@@ -4338,13 +4383,17 @@ var COT = (function(){
   // Precios SIEMPRE con IVA incluido (es la lista real de venta); si la
   // cotización se emite en valores netos, se convierte al agregar la línea.
   // [código, nombre, detalle, unidad, precio minorista, precio mayorista]
+  //
+  // Van en cero a propósito: este archivo se sirve por internet y cualquiera
+  // puede leerlo entero. La lista de precios se escribe una vez en Ajustes y
+  // queda en el dispositivo, que es el único lugar donde nadie más la ve.
   var CATALOGO = [
-    ["HDS-OA","Ostra Azul","Pleurotus ostreatus · fresco","kg",15000,13000],
-    ["HDS-ML","Melena de León","Hericium erinaceus · fresco","kg",15000,13000],
-    ["HDS-CH","Chestnut","Pholiota adiposa · fresco","kg",15000,13000],
-    ["HDS-SH","Shiitake","Lentinula edodes · fresco","kg",15000,13000],
-    ["HDS-OG","Ostra Golden","Pleurotus citrinopileatus · fresco","kg",15000,13000],
-    ["HDS-OR","Ostra Rosado","Pleurotus djamor · fresco","kg",15000,13000],
+    ["HDS-OA","Ostra Azul","Pleurotus ostreatus · fresco","kg",0,0],
+    ["HDS-ML","Melena de León","Hericium erinaceus · fresco","kg",0,0],
+    ["HDS-CH","Chestnut","Pholiota adiposa · fresco","kg",0,0],
+    ["HDS-SH","Shiitake","Lentinula edodes · fresco","kg",0,0],
+    ["HDS-OG","Ostra Golden","Pleurotus citrinopileatus · fresco","kg",0,0],
+    ["HDS-OR","Ostra Rosado","Pleurotus djamor · fresco","kg",0,0],
     ["HDS-DML","Melena de León deshidratada","Bolsa 100 g","unidad",0,0],
     ["HDS-DSH","Shiitake deshidratado","Bolsa 100 g","unidad",0,0],
     ["HDS-DOA","Ostra deshidratada","Bolsa 100 g","unidad",0,0],
@@ -4430,7 +4479,7 @@ var COT = (function(){
     var p = s.split(".");
     return miles(Number(p[0])) + (p[1] ? "," + p[1] : "");
   }
-  // Acepta lo que la gente realmente escribe: 13000, 13.000, $13.000, 2,5 y 2.5.
+  // Acepta lo que la gente realmente escribe: 24000, 24.000, $24.000, 2,5 y 2.5.
   // Con coma presente, los puntos son separador de miles; sin coma, sólo se tratan
   // como miles si el patrón es 1.234 / 12.345.678 — así "2.5" sigue siendo dos y medio.
   function aNum(s){
@@ -5627,7 +5676,7 @@ var COS = (function(){
     ["Aguja 16G de pulgada y media","con",100,"unidad",0,0],
     ["Imán para agitación magnética","reu",1,"unidad",0,500],
 
-    ["Grano de trigo","con",25,"kg",12000,0],
+    ["Grano de trigo","con",25,"kg",0,0],
     ["Bolsa mushbag 18x50 0.06","con",100,"unidad",0,0],
     ["Caja Wenbox 28 L","reu",1,"unidad",0,0],
     ["Caja Wenbox 61 L","reu",1,"unidad",0,0],
@@ -5769,10 +5818,13 @@ var COS = (function(){
     });
     return {
       v:1, ins:ins, eta:eta,
+      // Sin cifras del negocio: el archivo es público, los montos se escriben
+      // en Ajustes y se quedan en el dispositivo. El kWh es el único que viene
+      // con un valor, porque es una tarifa de la calle y no dice nada de nadie.
       cfg:{
         kwh:160,
-        fijos:[{n:"Internet", m:14990},{n:"Agua", m:15000}],
-        sueldo:553553,
+        fijos:[{n:"Internet", m:0},{n:"Agua", m:0}],
+        sueldo:0,
         modoHora:"sueldo",
         valorHora:3000,
         bolsasMes:120,
@@ -5834,7 +5886,7 @@ var COS = (function(){
     return (r < 0 ? "-" : "") + miles(Number(s[0])) + (s[1] ? "," + s[1] : "");
   }
   function pct(n){ return cifra(n, 1) + "%"; }
-  // Acepta lo que se escribe de verdad: 13000, 13.000, $13.000, 2,5 y 2.5.
+  // Acepta lo que se escribe de verdad: 24000, 24.000, $24.000, 2,5 y 2.5.
   function aNum(s){
     s = String(s == null ? "" : s).replace(/[\s$%]/g,"");
     if(s.indexOf(",") >= 0) s = s.replace(/\./g,"").replace(",",".");
@@ -6138,6 +6190,13 @@ var COS = (function(){
     }
     if(!r.kgMes){
       h += '<div class="kaviso">Todavía no se puede repartir el sueldo ni los gastos fijos: revisa el plan del mes en Ajustes.</div>';
+    }
+    // Sin sueldo ni gastos fijos el kilo sale barato y falso: mejor decirlo.
+    if(DB.cfg.modoHora === "sueldo" && !Number(DB.cfg.sueldo)){
+      h += '<div class="kaviso">El costo <b>no incluye tu trabajo</b>. Escribe en Ajustes cuánto quieres retirar al mes y aparece repartido en cada kilo.</div>';
+    }
+    if(!r.fijosMes){
+      h += '<div class="kaviso">Faltan tus <b>gastos fijos</b> (internet, agua, arriendo): sin ellos el kilo sale más barato de lo que es.</div>';
     }
     return h;
   }
@@ -7093,7 +7152,205 @@ var COS = (function(){
 })();
 
 /* ============================================================
-   20. Eventos
+   20. Puerta
+   ============================================================
+
+   Servida por internet, la app no muestra nada hasta que haya sesión. Abierta
+   como archivo local no pide nada: ahí el archivo ya está en las manos de quien
+   lo abrió, y exigir señal para usarlo sólo serviría para quedarse afuera.
+
+   Qué protege y qué no, para no confundirse:
+
+   - **Sí protege** los datos. Los del teléfono son de ese teléfono, y los de la
+     nube los guarda el servidor con sus permisos: sin cuenta aprobada no
+     entrega ni una fila. La puerta agrega que, además, no se pueda ni mirar la
+     interfaz ni escribir nada desde la dirección pública.
+   - **No protege el archivo.** Cualquiera puede pedir el HTML y leerlo entero:
+     así funciona un sitio estático. Por eso, además de la puerta, el archivo no
+     lleva adentro ningún dato del negocio — precios, costos y gastos viven en
+     el dispositivo, no en el código.
+   ============================================================ */
+
+var EXIGE_SESION = location.protocol.indexOf("http") === 0;
+var modoPuerta = "entrar", msgPuerta = null, correoPuerta = "", ocupadaPuerta = false;
+
+var SELLO_PUERTA = LOGO_DEF
+  ? '<img src="' + LOGO_DEF + '" alt="">'
+  : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M3.2 10.5c0-4.2 3.9-7 8.8-7s8.8 2.8 8.8 7c0 1.1-.9 1.7-2.2 1.7H5.4c-1.3 0-2.2-.6-2.2-1.7Z"/>' +
+    '<path d="M9.6 12.2v5.4c0 1.6.9 2.6 2.4 2.6s2.4-1 2.4-2.6v-5.4"/></svg>';
+
+function pintarPuerta(){
+  var crear = modoPuerta === "crear", espera = modoPuerta === "espera";
+  var h = '<div class="puerta__in">';
+  h += '<div class="puerta__sello">' + SELLO_PUERTA + "</div>";
+  h += '<h1 class="puerta__t">Hongos del Sur</h1>';
+  h += '<div class="puerta__s">Producción e inventario</div>';
+
+  if(msgPuerta){
+    h += '<div class="puerta__err"' + (msgPuerta.t === "ok" ? ' style="background:var(--ok-bg);color:var(--ok)"' : "") +
+         ">" + esc(msgPuerta.txt) + "</div>";
+  }
+
+  if(espera){
+    var s = NUBE.sesion(), p = NUBE.perfil();
+    var bloq = p && p.rol === "bloqueado";
+    h += '<p class="puerta__d">' + (bloq
+      ? "Este acceso fue dado de baja."
+      : "Tu cuenta está creada, pero todavía no tiene acceso. El dueño la aprueba y después entras con el mismo correo.") + "</p>";
+    if(s) h += '<div class="field"><label>Cuenta</label><input value="' + esc(s.correo) + '" disabled></div>';
+    h += '<div style="margin-top:6px"><button class="btn btn--primary" data-pact="revisar">Comprobar de nuevo</button></div>';
+    h += '<div style="margin-top:9px"><button class="btn btn--ghost" data-pact="salir">Salir</button></div>';
+    h += "</div>";
+    document.getElementById("puerta").innerHTML = h;
+    return;
+  }
+
+  h += '<p class="puerta__d">' + (crear
+    ? "Crea tu cuenta y pídele al dueño que te dé acceso."
+    : "Esta app es de uso interno. Entra con tu cuenta para verla.") + "</p>";
+
+  if(crear){
+    h += '<div class="field"><label for="p_nom">Tu nombre</label>';
+    h += '<input id="p_nom" autocomplete="name" placeholder="Cómo te ven en el equipo"></div>';
+  }
+  h += '<div class="field"><label for="p_correo">Correo</label>';
+  h += '<input id="p_correo" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" value="' +
+       esc(correoPuerta) + '" placeholder="tucorreo@ejemplo.cl"></div>';
+  h += '<div class="field"><label for="p_clave">Clave</label>';
+  h += '<input id="p_clave" type="password" autocomplete="' + (crear ? "new-password" : "current-password") +
+       '" placeholder="' + (crear ? "Al menos 6 caracteres" : "Tu clave") + '"></div>';
+
+  h += '<div style="margin-top:6px"><button class="btn btn--primary" data-pact="' + (crear ? "crear" : "entrar") + '"' +
+       (ocupadaPuerta ? " disabled" : "") + ">" +
+       (ocupadaPuerta ? "Un momento…" : crear ? "Crear mi cuenta" : "Entrar") + "</button></div>";
+
+  h += '<p class="puerta__pie">' + (crear
+    ? '¿Ya tienes cuenta? <button data-pact="modo" data-pv="entrar">Entrar</button>'
+    : '¿Primera vez? <button data-pact="modo" data-pv="crear">Crear una cuenta</button>') + "</p>";
+  h += '<p class="puerta__pie">Los datos de este negocio no salen de aquí.</p>';
+  h += "</div>";
+
+  document.getElementById("puerta").innerHTML = h;
+}
+
+function abrirPuerta(modo){
+  modoPuerta = modo || "entrar";
+  ocupadaPuerta = false;
+  cerrarHoja();
+  pintarPuerta();
+  document.getElementById("puerta").classList.add("on");
+  document.documentElement.setAttribute("data-puerta", "1");
+  window.scrollTo(0,0);
+}
+function cerrarPuerta(){
+  msgPuerta = null;
+  var p = document.getElementById("puerta");
+  p.classList.remove("on");
+  p.innerHTML = "";
+  document.documentElement.removeAttribute("data-puerta");
+}
+function puertaArriba(){ return document.documentElement.hasAttribute("data-puerta"); }
+
+// Con la sesión ya iniciada: si el rol todavía no da acceso, la puerta se queda.
+function revisarRol(rol){
+  if(rol === "pendiente" || rol === "bloqueado"){ abrirPuerta("espera"); return false; }
+  if(puertaArriba()) cerrarPuerta();
+  return true;
+}
+
+function tocarPuerta(accion){
+  var el;
+  if(accion === "modo") return;
+
+  if(accion === "salir"){
+    NUBE.salir(function(){ SYNC.olvidar(); aplicarRol(); abrirPuerta("entrar"); });
+    return;
+  }
+
+  if(accion === "revisar"){
+    msgPuerta = null; pintarPuerta();
+    NUBE.traerPerfil(function(err){
+      if(err){ msgPuerta = {t:"err", txt:err}; pintarPuerta(); return; }
+      var rol = NUBE.rol();
+      if(revisarRol(rol)){
+        aplicarRol();
+        SYNC.sincronizar(function(){});
+        avisar("Listo, ya tienes acceso");
+      }else{
+        msgPuerta = {t:"err", txt:"Todavía no. Avísale al dueño."};
+        pintarPuerta();
+      }
+    });
+    return;
+  }
+
+  if(ocupadaPuerta) return;
+  var crear = accion === "crear";
+  correoPuerta = (val0("p_correo") || "").trim();
+  var clave = val0("p_clave");
+  var nombre = crear ? (val0("p_nom") || "").trim() : "";
+
+  if(!correoPuerta || !clave){
+    msgPuerta = {t:"err", txt:"Escribe tu correo y tu clave."};
+    pintarPuerta();
+    return;
+  }
+
+  ocupadaPuerta = true; msgPuerta = null; pintarPuerta();
+
+  function listo(err, resultado){
+    ocupadaPuerta = false;
+    if(err){
+      msgPuerta = {t:"err", txt:err};
+      pintarPuerta();
+      return;
+    }
+    if(resultado === "confirmar"){
+      modoPuerta = "entrar";
+      msgPuerta = {t:"ok", txt:"Cuenta creada. Te llegó un correo para confirmarla; ábrelo y vuelve acá."};
+      pintarPuerta();
+      return;
+    }
+    // Entramos, pero el rol manda: hasta que el dueño apruebe, no se pasa.
+    NUBE.traerPerfil(function(){
+      if(!revisarRol(NUBE.rol())) return;
+      aplicarRol();
+      SYNC.sincronizar(function(){});
+      avisar("Hola de nuevo");
+      if(/^#\/l\//.test(location.hash || "")) aplicarHash();
+    });
+  }
+
+  if(crear) NUBE.registrar(correoPuerta, clave, nombre, listo);
+  else NUBE.entrar(correoPuerta, clave, function(err){ listo(err, "sesion"); });
+}
+
+function val0(id){ var e = document.getElementById(id); return e ? e.value : ""; }
+
+document.addEventListener("click", function(ev){
+  var t = ev.target.closest ? ev.target.closest("[data-pact]") : null;
+  if(!t) return;
+  if(t.getAttribute("data-pact") === "modo"){
+    modoPuerta = t.getAttribute("data-pv");
+    msgPuerta = null;
+    pintarPuerta();
+    return;
+  }
+  tocarPuerta(t.getAttribute("data-pact"));
+});
+
+// Enter en la clave entra, que es lo que espera cualquiera.
+document.addEventListener("keydown", function(ev){
+  if(ev.key !== "Enter" || !puertaArriba()) return;
+  var el = ev.target;
+  if(!el.id || el.id.slice(0,2) !== "p_") return;
+  ev.preventDefault();
+  tocarPuerta(modoPuerta === "crear" ? "crear" : "entrar");
+});
+
+/* ============================================================
+   21. Eventos
    ============================================================ */
 
 var VISTAS = ["conteo","lotes","ficha","resumen","insumos","cotiza","costos"];
@@ -7170,10 +7427,11 @@ function tomarSesionDelHash(){
     return true;
   }
   NUBE.desdeHash(p, function(err){
-    if(err){ avisar(err); return; }
+    if(err){ avisar(err); abrirPuerta("entrar"); return; }
     NUBE.traerPerfil(function(){
+      if(!revisarRol(NUBE.rol())) return;
+      aplicarRol();
       avisar("Correo confirmado · sesión iniciada");
-      hojaNube();
     });
   });
   return true;
@@ -7471,7 +7729,7 @@ document.addEventListener("keydown", function(ev){
 window.addEventListener("hashchange", aplicarHash);
 
 /* ============================================================
-   21. Arranque
+   22. Arranque
    ============================================================ */
 
 try{
@@ -7490,11 +7748,18 @@ DB = cargar();
 borrador();
 guardar();
 
+// El hash se lee antes que nada, porque puede traer la sesión del enlace del
+// correo —y de eso depende si la puerta se abre o no— o el lote de un QR.
+var vinoDelCorreo = tomarSesionDelHash();
+
 // Si había sesión, se recupera el rol por detrás: la app no espera al servidor.
 SYNC.cargarEstado();
 if(NUBE.cargar()){
   NUBE.traerPerfil(function(err){
+    // Sin señal no se sabe el rol y se sigue con lo guardado: el galpón no
+    // tiene cobertura y quedarse afuera ahí sería peor que cualquier riesgo.
     if(err) return;
+    if(!revisarRol(NUBE.rol())) return;
     aplicarRol();
     SYNC.sincronizar(function(){});
   });
@@ -7502,11 +7767,12 @@ if(NUBE.cargar()){
 // Al recuperar la señal, lo que quedó pendiente sube solo.
 window.addEventListener("online", function(){ SYNC.pronto(); });
 
-// El hash se lee antes de pintar nada, porque cambiar de pantalla lo borra.
-// Puede traer la sesión del enlace del correo, o el lote de un QR escaneado.
-var vinoDelCorreo = tomarSesionDelHash();
 if(!vinoDelCorreo && /^#\/l\//.test(location.hash || "")) aplicarHash();
 else irA("conteo");
+
+// La puerta va al final: la app ya está pintada detrás, así que al entrar
+// aparece entera, incluida la ficha del lote si se llegó escaneando un QR.
+if(EXIGE_SESION && !NUBE.sesion()) abrirPuerta("entrar");
 
 })();
 </script>
