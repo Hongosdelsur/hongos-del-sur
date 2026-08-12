@@ -2883,11 +2883,27 @@ var NUBE = (function(){
     });
   }
 
-  // A dónde vuelve el enlace de confirmación del correo. Sin esto, Supabase usa
-  // su Site URL por defecto (localhost) y el enlace no lleva a ninguna parte.
+  /* A dónde vuelve el enlace de confirmación del correo.
+
+     Mandarlo no basta: la dirección además tiene que estar en la lista de
+     permitidas del panel (Authentication → URL Configuration). Si no está,
+     el servidor la descarta sin avisar y usa su «Site URL», que de fábrica es
+     http://localhost:3000 — una dirección que en un teléfono no abre nada y
+     hace parecer que el enlace llegó roto. */
   function destino(){
     if(location.protocol !== "http:" && location.protocol !== "https:") return "";
     return location.origin + location.pathname;
+  }
+
+  // Otro correo de confirmación. Hace falta cuando el primero se perdió o
+  // cuando salió apuntando a una dirección equivocada: los ya enviados no se
+  // arreglan solos aunque después se corrija la configuración.
+  function reenviar(correo, cb){
+    var vuelta = destino();
+    llamar("/auth/v1/resend" + (vuelta ? "?redirect_to=" + encodeURIComponent(vuelta) : ""), {
+      metodo:"POST",
+      cuerpo:{type:"signup", email:correo}
+    }, function(err){ cb(err ? err.msg : null); });
   }
 
   function registrar(correo, clave, nombre, cb){
@@ -3011,6 +3027,7 @@ var NUBE = (function(){
     perfil: function(){ return perfil; },
     rol: function(){ return perfil ? perfil.rol : null; },
     registrar: registrar,
+    reenviar: reenviar,
     entrar: entrar,
     salir: salir,
     traerPerfil: traerPerfil,
@@ -7173,6 +7190,9 @@ var COS = (function(){
 
 var EXIGE_SESION = location.protocol.indexOf("http") === 0;
 var modoPuerta = "entrar", msgPuerta = null, correoPuerta = "", ocupadaPuerta = false;
+// Se ofrece reenviar el correo sólo cuando el problema es ése, para no llenar
+// la pantalla de botones que no vienen al caso.
+var faltaConfirmar = false;
 
 var SELLO_PUERTA = LOGO_DEF
   ? '<img src="' + LOGO_DEF + '" alt="">'
@@ -7225,6 +7245,12 @@ function pintarPuerta(){
        (ocupadaPuerta ? " disabled" : "") + ">" +
        (ocupadaPuerta ? "Un momento…" : crear ? "Crear mi cuenta" : "Entrar") + "</button></div>";
 
+  if(faltaConfirmar && correoPuerta){
+    h += '<div style="margin-top:9px"><button class="btn btn--ghost" data-pact="reenviar"' +
+         (ocupadaPuerta ? " disabled" : "") + ">Mandarme el correo de nuevo</button></div>";
+    h += '<p class="puerta__pie">Si el mensaje anterior no se abría, éste llega corregido. Revisa también la carpeta de spam.</p>';
+  }
+
   h += '<p class="puerta__pie">' + (crear
     ? '¿Ya tienes cuenta? <button data-pact="modo" data-pv="entrar">Entrar</button>'
     : '¿Primera vez? <button data-pact="modo" data-pv="crear">Crear una cuenta</button>') + "</p>";
@@ -7268,6 +7294,19 @@ function tocarPuerta(accion){
     return;
   }
 
+  if(accion === "reenviar"){
+    if(ocupadaPuerta || !correoPuerta) return;
+    ocupadaPuerta = true; msgPuerta = null; pintarPuerta();
+    NUBE.reenviar(correoPuerta, function(err){
+      ocupadaPuerta = false;
+      msgPuerta = err
+        ? {t:"err", txt:err}
+        : {t:"ok", txt:"Listo, te mandamos otro correo a " + correoPuerta + ". Ábrelo desde este mismo teléfono."};
+      pintarPuerta();
+    });
+    return;
+  }
+
   if(accion === "revisar"){
     msgPuerta = null; pintarPuerta();
     NUBE.traerPerfil(function(err){
@@ -7303,12 +7342,16 @@ function tocarPuerta(accion){
     ocupadaPuerta = false;
     if(err){
       msgPuerta = {t:"err", txt:err};
+      // Si lo que falta es confirmar el correo, aparece el botón para pedir otro.
+      faltaConfirmar = /confirmar el correo/i.test(err);
       pintarPuerta();
       return;
     }
+    faltaConfirmar = false;
     if(resultado === "confirmar"){
       modoPuerta = "entrar";
-      msgPuerta = {t:"ok", txt:"Cuenta creada. Te llegó un correo para confirmarla; ábrelo y vuelve acá."};
+      faltaConfirmar = true;
+      msgPuerta = {t:"ok", txt:"Cuenta creada. Te llegó un correo para confirmarla; ábrelo desde este mismo teléfono y vuelve acá."};
       pintarPuerta();
       return;
     }
@@ -7334,6 +7377,7 @@ document.addEventListener("click", function(ev){
   if(t.getAttribute("data-pact") === "modo"){
     modoPuerta = t.getAttribute("data-pv");
     msgPuerta = null;
+    faltaConfirmar = false;
     pintarPuerta();
     return;
   }
